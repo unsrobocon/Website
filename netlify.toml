@@ -1,0 +1,23 @@
+# Netlify: situs statis, tanpa langkah build. Folder yang diterbitkan = akar repo.
+[build]
+  publish = "."
+  command = "echo 'situs statis, tanpa build'"
+
+# berkas pengembangan tidak perlu diterbitkan
+[[redirects]]
+  from = "/tests/*"
+  to = "/404.html"
+  status = 404
+[[redirects]]
+  from = "/tools/*"
+  to = "/404.html"
+  status = 404
+
+[[headers]]
+  for = "/perakit/data/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/simulator/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

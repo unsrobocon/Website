@@ -1,0 +1,36 @@
+# Cadangan bila nanti memakai GitHub Pages (situs utama diterbitkan Netlify, lihat README).
+# Pages untuk repo private butuh paket berbayar, jadi workflow ini hanya dijalankan manual
+# (Actions > Terbitkan ke GitHub Pages > Run workflow) setelah Settings > Pages > Source: "GitHub Actions".
+# Untuk terbit otomatis, tambahkan  push: branches: [main]  di bawah on:.
+name: Terbitkan ke GitHub Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  terbit:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Siapkan berkas situs
+        run: |
+          mkdir -p _site
+          cp -r index.html .nojekyll perakit simulator _site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

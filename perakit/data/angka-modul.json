@@ -1,0 +1,231 @@
+{
+  "_petunjuk": [
+    "Isi angka hasil ukur robot asli di sini, lalu set \"diukur\": true. Perakit memakai angka ini menggantikan perkiraan.",
+    "Hanya ubah angka. Jangan ganti nama modul (id) atau nama angka. Kosongkan/hapus baris yang belum diukur.",
+    "Kecepatan (speed) diisi kecepatan robot lurus penuh. BR otomatis dikali 0,9 (lift tinggi). Cara mengukur: KALIBRASI.md di SimulatorABU."
+  ],
+  "_satuan": {
+    "berat": "kg",
+    "berat668": "kg untuk rangka 668 x 668 mm",
+    "beratDasar": "kg",
+    "beratPerMm": "kg per mm tinggi cup",
+    "beratPer": "kg per motor",
+    "speed": "m/s",
+    "acc": "m/s2",
+    "faktor": "pengali kecepatan",
+    "turun": "% tenaga turun di akhir 3 menit",
+    "hSpeed": "mm/s",
+    "eSpeed": "mm/s",
+    "jawSpeed": "mm/s",
+    "openSpeed": "mm/s"
+  },
+  "lainLain": {
+    "_arti": "kg kabel, baut, pelat & elektronik lain per robot",
+    "BR": 2.2,
+    "TR": 1.5
+  },
+  "modul": {
+    "rangka-hollow": {
+      "_nama": "Hollow aluminium 20×20",
+      "berat668": 2.4,
+      "diukur": false,
+      "catatan": ""
+    },
+    "rangka-vslot": {
+      "_nama": "Profil V-slot 2020",
+      "berat668": 3.6,
+      "diukur": false,
+      "catatan": ""
+    },
+    "rangka-komposit": {
+      "_nama": "Pelat komposit karbon",
+      "berat668": 1.7,
+      "diukur": false,
+      "catatan": ""
+    },
+    "mecanum": {
+      "_nama": "Mecanum 4 roda",
+      "berat": 1.9,
+      "faktor": 1,
+      "diukur": false,
+      "catatan": ""
+    },
+    "omni": {
+      "_nama": "Omni 4 roda",
+      "berat": 1.5,
+      "faktor": 1.05,
+      "diukur": false,
+      "catatan": ""
+    },
+    "diferensial": {
+      "_nama": "Diferensial 2 roda + caster",
+      "berat": 1.1,
+      "faktor": 1.12,
+      "diukur": false,
+      "catatan": ""
+    },
+    "pg45": {
+      "_nama": "Motor PG45 (torsi besar)",
+      "beratPer": 0.9,
+      "speed": 1,
+      "acc": 4.5,
+      "diukur": false,
+      "catatan": ""
+    },
+    "pg36": {
+      "_nama": "Motor PG36 (cepat)",
+      "beratPer": 0.6,
+      "speed": 1.6,
+      "acc": 3.5,
+      "diukur": false,
+      "catatan": ""
+    },
+    "bldc": {
+      "_nama": "BLDC + ESC",
+      "beratPer": 0.75,
+      "speed": 2.3,
+      "acc": 5,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lipo-4s": {
+      "_nama": "LiPo 4S 5200 mAh",
+      "berat": 0.56,
+      "turun": 18,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lipo-6s": {
+      "_nama": "LiPo 6S 5200 mAh",
+      "berat": 0.82,
+      "turun": 8,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lipo-6s-besar": {
+      "_nama": "LiPo 6S 10000 mAh",
+      "berat": 1.45,
+      "turun": 3,
+      "diukur": false,
+      "catatan": ""
+    },
+    "stm32": {
+      "_nama": "STM32F407 + stik PS4",
+      "berat": 0.6,
+      "diukur": false,
+      "catatan": ""
+    },
+    "stm32-jetson": {
+      "_nama": "STM32F407 + Jetson",
+      "berat": 1.3,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lift-belt": {
+      "_nama": "Lift 2 tingkat (belt)",
+      "beratDasar": 3.2,
+      "beratPerMm": 0.0015,
+      "hSpeed": 380,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lift-cepat": {
+      "_nama": "Lift 2 tingkat (BLDC cepat)",
+      "beratDasar": 4.2,
+      "beratPerMm": 0.0015,
+      "hSpeed": 700,
+      "diukur": false,
+      "catatan": ""
+    },
+    "boom-pendek": {
+      "_nama": "Boom pendek",
+      "berat": 0.9,
+      "eSpeed": 200,
+      "diukur": false,
+      "catatan": ""
+    },
+    "boom-panjang": {
+      "_nama": "Boom panjang",
+      "berat": 1.7,
+      "eSpeed": 260,
+      "diukur": false,
+      "catatan": ""
+    },
+    "vakum3": {
+      "_nama": "Vakum 3 cup + pompa",
+      "berat": 1.4,
+      "diukur": false,
+      "catatan": ""
+    },
+    "track-flipper": {
+      "_nama": "Track + flipper",
+      "berat": 3.6,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lift-rahang-belt": {
+      "_nama": "Lift rahang (belt)",
+      "berat": 2.4,
+      "jawSpeed": 450,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lift-rahang-cepat": {
+      "_nama": "Lift rahang (BLDC cepat)",
+      "berat": 3,
+      "jawSpeed": 800,
+      "diukur": false,
+      "catatan": ""
+    },
+    "jepit-u": {
+      "_nama": "Penjepit U (rack-pinion)",
+      "berat": 2.2,
+      "openSpeed": 260,
+      "diukur": false,
+      "catatan": ""
+    },
+    "jepit-u-cepat": {
+      "_nama": "Penjepit U (servo cepat)",
+      "berat": 2.6,
+      "openSpeed": 450,
+      "diukur": false,
+      "catatan": ""
+    },
+    "kamera": {
+      "_nama": "Kamera depan",
+      "berat": 0.15,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lidar": {
+      "_nama": "LiDAR 2D",
+      "berat": 0.35,
+      "diukur": false,
+      "catatan": ""
+    },
+    "keranjang": {
+      "_nama": "Keranjang Mustika",
+      "berat": 0.6,
+      "diukur": false,
+      "catatan": ""
+    },
+    "bumper": {
+      "_nama": "Bumper karet",
+      "berat": 0.5,
+      "diukur": false,
+      "catatan": ""
+    },
+    "lampu": {
+      "_nama": "Lampu status",
+      "berat": 0.12,
+      "diukur": false,
+      "catatan": ""
+    },
+    "estop": {
+      "_nama": "Tombol darurat",
+      "berat": 0.12,
+      "diukur": false,
+      "catatan": ""
+    }
+  }
+}
