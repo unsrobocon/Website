@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perakit Robot Werkudara</title>
+  <meta name="description" content="Rakit robot ABU Robocon 2027 dari modul plug-and-play, lalu mainkan langsung di arena 3D." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%23df2222%22/%3E%3Crect x=%224%22 y=%224%22 width=%228%22 height=%228%22 fill=%22%23ffd400%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/perakit.css" />
+  <script type="importmap">
+    { "imports": { "three": "../simulator/vendor/three.module.js", "three/addons/": "../simulator/vendor/addons/" } }
+  </script>
+</head>
+<body>
+  <header id="atas">
+    <a class="merek" href="../" title="Beranda Werkudara"><span class="logo"></span><span>Werkudara <b>Perakit Robot</b></span></a>
+    <input id="nama" type="text" maxlength="24" placeholder="Nama robotmu" aria-label="Nama desain" />
+    <div class="aksi-atas">
+      <select id="templat" aria-label="Mulai dari templat">
+        <option value="">Mulai dari…</option>
+      </select>
+      <button id="bagikan" type="button" title="Salin tautan desain ini">Bagikan</button>
+      <button id="unduh" type="button" title="Unduh desain (JSON)">Simpan</button>
+      <label class="tombol" title="Buka desain (JSON)">Buka<input id="buka" type="file" accept=".json,application/json" hidden /></label>
+      <button id="panduan-btn" type="button">Cara pakai</button>
+      <button id="main-atas" type="button" class="utama">▶ Mainkan</button>
+    </div>
+  </header>
+
+  <main id="kerja">
+    <aside id="palet" aria-label="Modul">
+      <div class="tab" role="tablist">
+        <button role="tab" data-kind="BR" class="BR">BR <small>Builder</small></button>
+        <button role="tab" data-kind="TR" class="TR">TR <small>Transporter</small></button>
+      </div>
+      <p class="petunjuk">Seret modul ke robot, atau klik <b>Pasang</b>.</p>
+      <div id="daftar-modul"></div>
+    </aside>
+
+    <section id="panggung">
+      <canvas id="tiga" aria-label="Pratinjau robot 3D"></canvas>
+      <div id="jatuh">Lepaskan untuk memasang</div>
+      <div id="alat">
+        <label title="Geser untuk melihat robot saat mekanisme terjulur">Pose <input id="pose" type="range" min="0" max="1" step="0.01" value="0" /></label>
+        <button id="uji-gerak" type="button" aria-pressed="false">Uji gerak</button>
+        <label><input id="batas" type="checkbox" checked /> Kotak 700 mm</label>
+        <button id="kamera-reset" type="button" title="Kembalikan kamera">Kamera</button>
+      </div>
+      <div id="ukuran-awal" aria-live="polite"></div>
+      <div id="tip"></div>
+    </section>
+
+    <aside id="ringkas" aria-label="Rakitan">
+      <h2 id="judul-robot">BR</h2>
+      <div id="slot-list"></div>
+      <h3>Cek Rulebook</h3>
+      <ul id="cek"></ul>
+      <h3>Performa (perkiraan)</h3>
+      <table id="spes"></table>
+      <h3>Berat tim <small>(Rule 11.8: maks. 60 kg berdua)</small></h3>
+      <div id="berat"></div>
+      <button id="main" type="button" class="utama">▶ Mainkan di arena 2027</button>
+      <p class="muted kecil">Angka berat dan performa adalah perkiraan untuk belajar. Robot asli: ukur lalu isi menu Kustom di simulator.</p>
+    </aside>
+  </main>
+
+  <dialog id="dlg-main">
+    <form method="dialog">
+      <h2>Mainkan di arena</h2>
+      <p id="main-info" class="muted"></p>
+      <fieldset>
+        <legend>Cara main</legend>
+        <label><input type="radio" name="cara" value="tr" checked /> Kemudikan TR, BR otonom <small>(seperti lomba)</small></label>
+        <label><input type="radio" name="cara" value="manual" /> Kemudikan BR dan TR sendiri <small>(Tab untuk berganti)</small></label>
+        <label><input type="radio" name="cara" value="otonom" /> Tonton kedua robot otonom</label>
+        <label><input type="radio" name="cara" value="earth" /> Latihan TR berwaktu: antar 2 tumpukan Earth</label>
+      </fieldset>
+      <fieldset>
+        <legend>Lawan</legend>
+        <label><input type="radio" name="lawan" value="0" checked /> Tanpa lawan</label>
+        <label><input type="radio" name="lawan" value="sama" /> Komputer, robot sama dengan rakitanmu</label>
+        <label><input type="radio" name="lawan" value="r1" /> Komputer, robot Werkudara R1 &amp; R3</label>
+      </fieldset>
+      <fieldset class="baris">
+        <legend>Tim</legend>
+        <label><input type="radio" name="tim" value="merah" checked /> Merah</label>
+        <label><input type="radio" name="tim" value="biru" /> Biru</label>
+      </fieldset>
+      <div class="tombol-dlg">
+        <button value="batal" type="submit">Batal</button>
+        <button value="ok" type="submit" class="utama" id="main-ok">Mulai</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-panduan">
+    <form method="dialog">
+      <h2>Cara pakai Perakit</h2>
+      <ol>
+        <li>Pilih robot di kiri atas: <b>BR</b> (Builder, menyusun menara) atau <b>TR</b> (Transporter, mengantar balok).</li>
+        <li>Seret modul ke robot 3D, atau klik <b>Pasang</b>. Slot bertanda <b>wajib</b> harus terisi.</li>
+        <li>Atur ukuran di panel kanan. Kotak garis hijau adalah batas awal 700 × 700 × 700 mm (Rule 11.5); berubah merah bila robot keluar dari kotak.</li>
+        <li>Geser <b>Pose</b> atau tekan <b>Uji gerak</b> untuk melihat robot terjulur penuh (Rule 11.6/11.7).</li>
+        <li>Klik bagian robot untuk melihat modulnya. Pantau berat BR + TR (maks. 60 kg).</li>
+        <li>Tekan <b>Mainkan</b>. Robotmu dimasukkan ke arena ABU Robocon 2027 dengan aturan dan skor Rulebook V1.1. Di arena tekan <kbd>H</kbd> untuk daftar tombol.</li>
+      </ol>
+      <p class="muted">Kontrol dasar di arena: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gerak, <kbd>Q</kbd>/<kbd>E</kbd> putar, <kbd>↑</kbd>/<kbd>↓</kbd> lift, <kbd>Space</kbd> jepit/vakum, <kbd>Tab</kbd> ganti robot, <kbd>Enter</kbd> mulai timer.</p>
+      <div class="tombol-dlg"><button type="submit" class="utama">Mengerti</button></div>
+    </form>
+  </dialog>
+
+  <div id="arena" hidden>
+    <div class="arena-bar">
+      <button id="kembali" type="button">◀ Kembali ke perakit</button>
+      <span id="arena-judul"></span>
+      <span class="muted">Klik arena lalu pakai keyboard · <kbd>H</kbd> bantuan</span>
+    </div>
+    <iframe id="arena-frame" title="Arena ABU Robocon 2027" allow="gamepad; fullscreen"></iframe>
+  </div>
+
+  <div id="pesan" role="status"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

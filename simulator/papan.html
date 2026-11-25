@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papan Skor Latihan</title>
+<style>
+  :root { --bg: #f7f6f2; --panel: #ffffff; --line: #e3e0d8; --fg: #1f2328; --muted: #6b7280; --aksen: #1f9d6b; --emas: #b7791f; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14181d; --panel: #1c2128; --line: #2c333c; --fg: #e6e8eb; --muted: #9aa3ad; --aksen: #3fcf95; --emas: #f0ad4e; } }
+  :root[data-theme="dark"] { --bg: #14181d; --panel: #1c2128; --line: #2c333c; --fg: #e6e8eb; --muted: #9aa3ad; --aksen: #3fcf95; --emas: #f0ad4e; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 40px; }
+  h1 { font-size: 22px; margin: 0 0 4px; } p.sub { color: var(--muted); margin: 0 0 18px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  h2 { font-size: 16px; margin: 0 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  td { padding: 5px 4px; border-top: 1px solid var(--line); } td.n { width: 1.5em; color: var(--muted); } td.w { text-align: right; font-weight: 600; }
+  tr:first-child td.w { color: var(--emas); } .muted { color: var(--muted); } small { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Papan Skor Latihan TR</h1>
+  <p class="sub" id="info">Hasil latihan dari semua laptop yang membuka simulator lewat server tim (<code>python tools/arena.py</code>). Diperbarui tiap 5 detik.</p>
+  <div class="grid" id="papan"></div>
+</main>
+<script>
+  const NAMA = { earth: 'Antar 2 tumpukan Earth', sky: 'Antar 2 Sky', mustika: 'Mustika ke BR' };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = (s) => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+  async function muat() {
+    try {
+      const d = await (await fetch('/api/papan', { cache: 'no-store' })).json();
+      document.getElementById('papan').innerHTML = Object.entries(NAMA).map(([k, nama]) => {
+        const list = (d[k] || []).slice(0, 10);
+        return `<section><h2>${nama}</h2><table>${list.length ? list.map((e, i) => `<tr><td class="n">${i + 1}</td><td>${esc(e.nama)} <small>${esc(e.tanggal)}${e.langgar ? ` · ${e.langgar} plg` : ''}</small></td><td class="w">${fmt(e.waktu)}</td></tr>`).join('') : '<tr><td class="muted">Belum ada hasil</td></tr>'}</table></section>`;
+      }).join('');
+    } catch {
+      document.getElementById('info').textContent = 'Server papan tidak menjawab — buka halaman ini lewat python tools/arena.py.';
+    }
+  }
+  muat();
+  setInterval(muat, 5000);
+</script>
+</body>
+</html>

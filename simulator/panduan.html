@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panduan Cepat — Simulator Werkudara</title>
+<style>
+  :root { --bg: #161b22; --panel: #1f252d; --line: #2f3742; --fg: #e6edf3; --muted: #9aa6b2; --ok: #3fb97f; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px max(16px, env(safe-area-inset-left)) 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 26px 0 8px; color: var(--ok); }
+  p.sub { color: var(--muted); margin: 0 0 18px; }
+  kbd { background: #2a313a; border: 1px solid #46505c; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font: 13px ui-monospace, monospace; }
+  code { background: #2a313a; border-radius: 4px; padding: 1px 5px; font: 13px ui-monospace, monospace; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td { border-top: 1px solid var(--line); padding: 5px 8px; vertical-align: top; }
+  td:first-child { white-space: nowrap; width: 1%; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+  ol li, ul li { margin: 3px 0; }
+  a { color: #7cc4ff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Panduan Cepat</h1>
+  <p class="sub">Simulator Werkudara — ABU Robocon 2027. Satu halaman untuk anggota baru; detail lengkap ada di README.</p>
+
+  <h2>1. Menjalankan</h2>
+  <ol>
+    <li>Ambil branch terbaru (Download ZIP dari GitHub atau <code>git pull</code>), ekstrak.</li>
+    <li>Klik dua kali <code>jalankan.bat</code>. Tanpa Python pun jalan (memakai PowerShell Windows).</li>
+    <li>Browser terbuka di <code>http://localhost:8027</code>. Jangan membuka <code>index.html</code> langsung.</li>
+    <li>Laptop terasa berat? Di menu pilih <b>Grafis: Ringan</b>.</li>
+  </ol>
+
+  <h2>2. Menu awal</h2>
+  <ul>
+    <li><b>Mode</b>: <i>Latihan bebas</i> untuk mencoba-coba; <i>Pertandingan</i> untuk simulasi lomba (setup 1 menit, robot terkunci sampai buzzer).</li>
+    <li><b>BR</b> otonom (wajib di lomba, Rule 11.3); <b>TR</b> manual (Anda) atau otonom.</li>
+    <li><b>Latihan TR</b>: tantangan berwaktu dengan papan skor per operator.</li>
+    <li><b>Tim lawan</b>: tidak ada, otonom (santai / penuh / agresif), atau <i>2 pemain</i> (stik mengemudikan TR lawan). Dua laptop: <code>python tools/arena.py</code>, tamu membuka alamat <code>/tamu</code> yang dicetak (lihat README).</li>
+    <li>Pilihan terakhir diingat. <kbd>Esc</kbd> di dalam simulator kembali ke menu.</li>
+  </ul>
+
+  <h2>3. Tombol penting</h2>
+  <div class="cols">
+    <table>
+      <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>maju / geser</td></tr>
+      <tr><td><kbd>Q</kbd><kbd>E</kbd></td><td>putar</td></tr>
+      <tr><td><kbd>Shift</kbd></td><td>tahan: presisi (pelan)</td></tr>
+      <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>lift / tinggi rahang</td></tr>
+      <tr><td><kbd>←</kbd><kbd>→</kbd></td><td>rahang TR / boom BR</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>jepit (TR) / vakum (BR)</td></tr>
+      <tr><td><kbd>1</kbd>–<kbd>6</kbd></td><td>preset tinggi</td></tr>
+    </table>
+    <table>
+      <tr><td><kbd>Enter</kbd></td><td>mulai / jeda timer</td></tr>
+      <tr><td><kbd>Tab</kbd></td><td>ganti robot</td></tr>
+      <tr><td><kbd>⌫</kbd></td><td>Retry robot aktif</td></tr>
+      <tr><td><kbd>O</kbd> / <kbd>I</kbd></td><td>BR / TR otonom</td></tr>
+      <tr><td><kbd>C</kbd></td><td>ganti kamera</td></tr>
+      <tr><td><kbd>L</kbd></td><td>catatan waktu &amp; putar ulang</td></tr>
+      <tr><td><kbd>J</kbd></td><td>rekam komentar pengarah</td></tr>
+      <tr><td><kbd>H</kbd></td><td>bantuan lengkap</td></tr>
+    </table>
+  </div>
+  <p><b>Tablet / HP</b>: joystick virtual muncul otomatis (kiri jalan, kanan putar dan rahang naik-turun) dengan tombol Jepit, Rahang −/+, Preset, Ganti, Timer, Retry. Di laptop layar sentuh tambahkan <code>?sentuh=1</code> pada alamat.</p>
+  <p>Stik PS4/Xbox langsung dikenali: stik kiri jalan, stik kanan putar dan lift, ✕ jepit/vakum, L2/R2 rahang/boom, Touchpad (atau X + Start) Retry.</p>
+
+  <h2>4. Alur latihan yang disarankan</h2>
+  <ol>
+    <li><b>Kenali TR</b>: Mode Latihan bebas, BR otonom, kemudikan TR mengantar 2 tumpukan Earth ke Transfer Area.</li>
+    <li><b>Ukur diri</b>: menu <i>Latihan TR → Antar 2 tumpukan Earth</i>, isi nama, ulangi sampai waktunya stabil.</li>
+    <li><b>Sky dan Mustika</b>: tantangan <i>Antar 2 Sky</i> lalu <i>Mustika ke BR</i>.</li>
+    <li><b>Pertandingan penuh</b>: Mode Pertandingan, lawan <i>Otonom — penuh</i>. Setelah selesai, tekan <kbd>L</kbd> untuk melihat waktu tiap tugas dan <b>Putar ulang</b> untuk evaluasi.</li>
+    <li><b>Strategi</b>: coba <i>Strategi otonom</i> lain atau susun sendiri, bandingkan skornya.</li>
+  </ol>
+
+  <h2>5. Melapor bug</h2>
+  <p>Catat: apa yang dilakukan, apa yang terjadi, apa yang diharapkan, pengaturan menu (lihat alamat di browser), dan tangkapan layar. Bila perlu, simpan rekaman pertandingan (<kbd>L</kbd> → <b>Putar ulang</b> → <b>Simpan</b>). Isi juga daftar uji di <code>UJI-MANUAL.md</code>.</p>
+
+  <p><a href="index.html">← Kembali ke simulator</a></p>
+</main>
+</body>
+</html>

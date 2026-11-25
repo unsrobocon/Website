@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Werkudara ABU Robocon 2027</title>
+  <meta name="description" content="Tim robot Werkudara: rakit robot ABU Robocon 2027 di browser lalu mainkan di arena 3D." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%23df2222%22/%3E%3Crect x=%224%22 y=%224%22 width=%228%22 height=%228%22 fill=%22%23ffd400%22/%3E%3C/svg%3E" />
+  <style>
+    :root { --bg: #14181d; --panel: #1d232b; --line: rgba(255, 255, 255, 0.09); --text: #e8ecf1; --muted: #9aa6b2; --merah: #df2222; --kuning: #ffd400; --BR: #2fa36b; --TR: #e08a1e; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 "Segoe UI", system-ui, sans-serif; }
+    a { color: inherit; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+    header { padding: 18px 0; border-bottom: 1px solid var(--line); }
+    header .wrap { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .logo { width: 24px; height: 24px; border-radius: 5px; background: var(--merah); box-shadow: inset 0 0 0 6px var(--merah), inset 0 0 0 12px var(--kuning); }
+    .hero { padding: 56px 0 36px; }
+    .hero p.kecil { color: var(--kuning); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px; margin: 0 0 10px; }
+    h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.1; margin: 0 0 16px; max-width: 18ch; }
+    .hero p.lead { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 0 0 28px; }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-block; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; border: 1px solid var(--line); background: var(--panel); }
+    .btn.utama { background: var(--merah); border-color: var(--merah); color: #fff; }
+    .btn:hover { filter: brightness(1.12); }
+    .kartu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 28px 0 44px; }
+    .kartu { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; text-decoration: none; display: flex; flex-direction: column; gap: 6px; transition: border-color 0.15s, transform 0.15s; }
+    a.kartu:hover { border-color: rgba(255, 255, 255, 0.28); transform: translateY(-2px); }
+    .kartu h3 { margin: 0; font-size: 18px; }
+    .kartu p { margin: 0; color: var(--muted); font-size: 14px; }
+    .kartu .tag { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    h2 { font-size: 24px; margin: 40px 0 6px; }
+    .sub { color: var(--muted); margin: 0 0 8px; }
+    .robot { border-left: 4px solid; }
+    .robot.BR { border-left-color: var(--BR); }
+    .robot.TR { border-left-color: var(--TR); }
+    ol.langkah { padding-left: 20px; color: var(--muted); }
+    ol.langkah li { margin: 6px 0; }
+    ol.langkah b { color: var(--text); }
+    footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; padding: 22px 0 36px; margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><span class="logo"></span> Werkudara · ABU Robocon 2027</div></header>
+  <main class="wrap">
+    <section class="hero">
+      <p class="kecil">The Pursuit of Mustika Nusantara</p>
+      <h1>Rakit robotmu, lalu langsung bertanding.</h1>
+      <p class="lead">Pilih rangka, penggerak, lift, penjepit dan sensor seperti menyusun lego. Perakit memeriksa ukuran dan berat terhadap Rulebook, lalu robotmu masuk ke arena 3D dengan aturan dan skor ABU Robocon 2027.</p>
+      <div class="cta">
+        <a class="btn utama" href="perakit/">Buka Perakit Robot</a>
+        <a class="btn" href="simulator/">Buka Simulator</a>
+      </div>
+    </section>
+
+    <div class="kartu-grid">
+      <a class="kartu" href="perakit/">
+        <span class="tag" style="color: var(--kuning)">Baru</span>
+        <h3>Perakit Robot 3D</h3>
+        <p>Modul plug-and-play untuk BR dan TR, cek Rule 11.3 & 11.5–11.8, lalu main di arena di halaman yang sama. Desain bisa dibagikan lewat tautan.</p>
+      </a>
+      <a class="kartu" href="simulator/">
+        <span class="tag" style="color: var(--muted)">Latihan</span>
+        <h3>Simulator lapangan</h3>
+        <p>Robot CAD Werkudara R1 & R3, mode otonom, lawan komputer, latihan TR berwaktu dan putar ulang pertandingan.</p>
+      </a>
+      <a class="kartu" href="simulator/panduan.html">
+        <span class="tag" style="color: var(--muted)">Mulai di sini</span>
+        <h3>Panduan cepat</h3>
+        <p>Satu halaman: tombol, alur pertandingan, dan cara mengumpulkan poin.</p>
+      </a>
+    </div>
+
+    <h2>Dua robot, satu tim</h2>
+    <p class="sub">Setiap tim membawa dua robot dengan tugas berbeda.</p>
+    <div class="kartu-grid">
+      <div class="kartu robot BR">
+        <span class="tag" style="color: var(--BR)">BR · Builder</span>
+        <h3>Menyusun menara</h3>
+        <p>Naik tangga ke L1, menghisap Earth dan Sky dengan vakum, menyusunnya di Building Spot, lalu membawa Mustika ke Central Pillar di L2. Wajib otonom penuh (Rule 11.3).</p>
+      </div>
+      <div class="kartu robot TR">
+        <span class="tag" style="color: var(--TR)">TR · Transporter</span>
+        <h3>Mengantar balok</h3>
+        <p>Mengambil Earth dari Storage dan Sky dari Ground Shared Area, lalu mengantarnya ke Transfer Area. Boleh dikemudikan operator.</p>
+      </div>
+    </div>
+
+    <h2>Tugas pertama anak magang</h2>
+    <ol class="langkah">
+      <li>Buka <b>Perakit</b>, pilih templat <b>Werkudara (seperti R1 & R3)</b>, lalu tekan <b>Mainkan</b>. Kemudikan TR dengan <b>W A S D</b>.</li>
+      <li>Ganti penggerak TR ke <b>diferensial</b> dan coba lagi. Apa yang jadi sulit?</li>
+      <li>Kecilkan lebar TR sampai 480 mm. Perhatikan berapa Sky yang bisa dijangkau.</li>
+      <li>Lebarkan rangka TR ke 690 mm lalu pasang <b>bumper karet</b>. Kenapa kotak batas berubah merah?</li>
+      <li>Bagikan desain terbaikmu ke grup tim dengan tombol <b>Bagikan</b>.</li>
+    </ol>
+  </main>
+  <footer><div class="wrap">Tim robot Werkudara · Aturan dan skor mengikuti ABU Robocon 2027 Rulebook V1.1. Berat dan performa di Perakit adalah perkiraan untuk belajar.</div></footer>
+</body>
+</html>
