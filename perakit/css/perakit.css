@@ -50,8 +50,14 @@ aside { background: var(--panel); overflow-y: auto; padding: 12px; min-height: 0
 .tab button.aktif.TR { border-color: var(--TR); background: rgba(224, 138, 30, 0.15); }
 .petunjuk { color: var(--muted); font-size: 13px; margin: 10px 2px; }
 
-.grup { margin: 14px 0 4px; }
-.grup h4 { margin: 0 0 6px; font-size: 13px; letter-spacing: 0.02em; display: flex; gap: 6px; align-items: center; }
+.grup { margin: 10px 0 4px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.grup summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; }
+.grup summary::-webkit-details-marker { display: none; }
+.grup summary::after { content: '▾'; color: var(--muted); font-size: 12px; }
+.grup:not([open]) summary::after { content: '▸'; }
+.grup .ringkas-isi { color: var(--muted); font-size: 12px; margin-left: auto; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+.grup[open] .ringkas-isi { display: none; }
+.grup h4 { margin: 0; font-size: 13px; letter-spacing: 0.02em; display: flex; gap: 6px; align-items: center; }
 .lencana { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 99px; background: #3a2e14; color: var(--warn); }
 .lencana.isi { background: #163322; color: var(--ok); }
 .lencana.opsi { background: #2a3038; color: var(--muted); }
@@ -150,4 +156,27 @@ fieldset label small { color: var(--muted); }
   #alat { font-size: 12px; gap: 6px; padding: 4px 8px; max-width: calc(100% - 16px); overflow-x: auto; }
   #alat input[type='range'] { width: 70px; }
   .aksi-atas { margin-left: 0; }
+  .aksi-atas button, .aksi-atas select, .aksi-atas .tombol { padding: 6px 9px; }
+  .kartu { cursor: default; }
+  .kartu button { padding: 6px 12px; }
 }
+
+/* ---------- varian CAD */
+#cad-panel { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; background: var(--panel2); font-size: 13px; }
+.cad-pilih { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; }
+.cad-pilih select { width: 100%; }
+.banding { width: 100%; border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; font-size: 12px; }
+.banding th, .banding td { padding: 3px 2px; border-bottom: 1px solid var(--line); text-align: right; }
+.banding th:first-child, .banding td:first-child { text-align: left; color: var(--muted); }
+.cad-tampil { display: flex; gap: 6px; align-items: flex-start; margin-top: 8px; }
+
+/* ---------- misi */
+#misi-list { padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; }
+#misi-list li { display: grid; grid-template-columns: 22px 1fr; gap: 2px 8px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--panel2); }
+#misi-list li::before { content: '○'; grid-row: 1 / span 3; color: var(--muted); font-weight: 700; }
+#misi-list li.beres { border-color: rgba(74, 222, 128, 0.45); }
+#misi-list li.beres::before { content: '✓'; color: var(--ok); }
+#misi-list li > * { grid-column: 2; }
+#misi-list span { font-size: 13px; }
+#misi-list small { font-size: 12px; }
+#misi-btn { border-color: rgba(255, 212, 0, 0.45); }

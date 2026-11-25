@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kenali Robot — Simulator Werkudara</title>
+<meta name="description" content="Bagian-bagian robot BR R1 dan TR R3 tim Werkudara dalam 3D, dengan fungsi dan pasal Rulebook ABU Robocon 2027." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%23df2222%22/%3E%3Crect x=%224%22 y=%224%22 width=%228%22 height=%228%22 fill=%22%23ffd400%22/%3E%3C/svg%3E" />
+<script type="importmap">
+  { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+<style>
+  :root { --bg: #161b22; --panel: #1f252d; --line: #2f3742; --fg: #e6edf3; --muted: #9aa6b2; --ok: #3fb97f; --warn: #fbbf24; --acc: #ffd400; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { display: grid; grid-template-columns: 360px 1fr; height: 100%; }
+  aside { overflow: auto; padding: 16px; border-right: 1px solid var(--line); }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 12px; font-size: 13px; }
+  .tab { display: flex; gap: 6px; margin-bottom: 10px; }
+  .tab button { flex: 1; background: var(--panel); color: var(--fg); border: 1px solid #46505c; border-radius: 8px; padding: 8px; font: 600 14px system-ui, sans-serif; cursor: pointer; }
+  .tab button.aktif { border-color: var(--acc); color: var(--acc); }
+  #ringkas { color: #cbd5e1; font-size: 13px; margin: 0 0 10px; }
+  #bagian { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  #bagian button { width: 100%; text-align: left; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+  #bagian button:hover:not(:disabled) { border-color: #6b7686; }
+  #bagian button.aktif { border-color: var(--acc); background: #2a2614; }
+  #bagian button:disabled { opacity: 0.5; cursor: default; }
+  #bagian span { color: #cbd5e1; font-size: 13px; }
+  #bagian .kunci, #bagian .rule { color: var(--muted); font-size: 12px; }
+  .ctl { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 12px 0 6px; font-size: 13px; }
+  .ctl input[type=range] { width: 140px; }
+  #ukuran { font-size: 12px; color: var(--muted); }
+  .ok { color: var(--ok); } .warn { color: var(--warn); }
+  .stage { position: relative; min-height: 0; }
+  #view3d { width: 100%; height: 100%; display: block; touch-action: none; }
+  #status { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--muted); text-align: center; max-width: 80%; }
+  .tip { position: absolute; left: 12px; bottom: 10px; color: var(--muted); font-size: 12px; background: #161b22cc; padding: 4px 8px; border-radius: 6px; }
+  a { color: #7cc4ff; }
+  @media (max-width: 760px) {
+    .wrap { grid-template-columns: 1fr; grid-template-rows: 48vh 1fr; }
+    .stage { order: -1; }
+    aside { border-right: 0; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside>
+    <h1>Kenali Robot Werkudara</h1>
+    <p class="sub">Model CAD asli. Klik bagian di daftar atau di model untuk melihat fungsinya. <a href="./">Ke simulator</a> · <a href="panduan.html">Panduan</a></p>
+    <div class="tab"><button type="button" data-robot="BR">BR R1 (Builder)</button><button type="button" data-robot="TR">TR R3 (Transporter)</button></div>
+    <p id="ringkas"></p>
+    <ul id="bagian"></ul>
+    <div class="ctl">
+      <label>Urai <input type="range" id="urai" min="0" max="1" step="0.01" value="0" aria-label="Urai modul"></label>
+      <label><input type="checkbox" id="putar" checked> Putar otomatis</label>
+    </div>
+    <p id="ukuran"></p>
+  </aside>
+  <div class="stage">
+    <canvas id="view3d" aria-label="Model 3D robot"></canvas>
+    <div id="status">Memuat…</div>
+    <div class="tip">Seret: putar · roda mouse / cubit: zoom · klik: pilih bagian</div>
+  </div>
+</div>
+<script type="module" src="js/kenali.js"></script>
+</body>
+</html>

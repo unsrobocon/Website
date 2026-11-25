@@ -31,6 +31,18 @@ sama dengan menu *Kustom* simulator dan menyimpannya di `localStorage` (`simabu.
 roda, motor, baterai, aksesori) diekspor ke GLB dan dipakai simulator sebagai *GLB cangkang*. Mekanisme yang bergerak
 (lift, boom, wrist, track, rahang) memakai robot kotak simulator, jadi pratinjau di Perakit sama dengan robot di arena.
 
+### Varian CAD dan Misi
+
+- **Varian CAD**: templat *CAD BR-A + TR-A* (bawaan), *BR-A + TR-B*, *BR-B + TR-A*, *BR-C + TR-A*, atau pilih varian per
+  robot di panel kanan. Modulnya diatur agar ukuran awal mendekati CAD, lalu tabel membandingkan ukuran awal,
+  terjulur dan massa CAD dengan rakitan. Centang *Tampilkan model CAD* untuk melihat GLB asli di samping rakitan
+  (pose awal, atau pose terjulur bila slider Pose digeser lewat setengah). Berkasnya di `perakit/cad/` (disalin dari
+  `desain-robot/cad/keluaran`, pose awal + terjulur, beserta `cad.json`). Di arena, robot tetap memakai rakitan:
+  mekanisme CAD belum punya rig gerak.
+- **Misi** (tombol di atas): 9 tantangan merakit yang tercentang otomatis (robot lolos Rulebook, TR ramping 12 Sky,
+  diet 40 kg, TR cepat, BR dengan kamera + LiDAR, pas di kotak 700 mm, bandingkan CAD, main di arena, bagikan).
+  Daftar ada di `perakit/js/misi.js`.
+
 ### Mengisi angka asli robot
 
 Semua angka modul (berat, kecepatan, percepatan, kecepatan lift/boom/rahang, penurunan baterai) ada di

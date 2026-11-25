@@ -1,8 +1,9 @@
 // Adegan 3D Perakit: lantai, kotak batas Rule 11.5, robot, sorotan bagian, animasi pasang modul.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { pose } from './bangun.js';
+import { pose, ukurAwal } from './bangun.js';
 
 export class Adegan {
   constructor(canvas) {
@@ -63,9 +64,33 @@ export class Adegan {
   }
 
   kameraAwal() {
-    this.camera.position.set(1.25, 1.0, 1.45);
-    this.controls.target.set(0, 0.32, 0);
+    const dx = this.cad?.visible ? 0.45 : 0;
+    this.camera.position.set(1.25 + dx * 1.6, 1.0 + dx * 0.4, 1.45 + dx * 1.4);
+    this.controls.target.set(dx, 0.32, 0);
     this.controls.update();
+  }
+
+  // Model CAD asli (GLB paket CAD: mm, +X ke depan) ditampilkan di samping rakitan.
+  // url null = sembunyikan. Mengembalikan Promise yang selesai saat model tampil.
+  async tampilCad(url) {
+    this.cadUrl = url;
+    if (!url) { if (this.cad) this.cad.visible = false; this.kameraAwal(); return; }
+    this.cadCache = this.cadCache || new Map();
+    if (!this.cadCache.has(url)) this.cadCache.set(url, new GLTFLoader().loadAsync(url).then((g) => g.scene));
+    const scene = await this.cadCache.get(url);
+    if (this.cadUrl !== url) return;               // sudah diganti saat memuat
+    if (this.cad) this.scene.remove(this.cad);
+    const g = new THREE.Group();
+    g.name = 'cad';
+    const m = scene;
+    m.scale.setScalar(0.001);
+    m.rotation.y = -Math.PI / 2;                    // +X CAD -> +Z robot (depan)
+    m.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+    g.add(m);
+    g.position.x = 0.9;
+    this.cad = g;
+    this.scene.add(g);
+    this.kameraAwal();
   }
 
   ukur() {
@@ -107,21 +132,10 @@ export class Adegan {
     // ukur pada posisi akhir, bukan di tengah animasi pasang
     const simpan = this.anim.map((a) => [a, a.n.position.y, a.n.scale.clone()]);
     for (const a of this.anim) { a.n.position.y = a.y0; a.n.scale.copy(a.s0); }
-    pose(this.robot, 0);
-    this.robot.updateMatrixWorld(true);
-    const b = new THREE.Box3();
-    const tampak = (n) => { for (let p = n; p; p = p.parent) if (!p.visible) return false; return true; };
-    this.robot.traverse((n) => {
-      if (!n.isMesh || !tampak(n)) return;
-      n.geometry.computeBoundingBox();
-      b.union(n.geometry.boundingBox.clone().applyMatrix4(n.matrixWorld));
-    });
+    const hasil = ukurAwal(this.robot);
     pose(this.robot, u);
     for (const [a, y, sc] of simpan) { a.n.position.y = y; a.n.scale.copy(sc); }
-    if (b.isEmpty()) return null;
-    const s = b.getSize(new THREE.Vector3());
-    // [panjang (z), lebar (x), tinggi (y)] seperti ukuran() simulator
-    return [Math.round(s.z * 1000), Math.round(s.x * 1000), Math.round(b.max.y * 1000)];
+    return hasil;
   }
 
   setBatas(tampil, ok) {

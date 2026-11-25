@@ -22,6 +22,7 @@
       <button id="bagikan" type="button" title="Salin tautan desain ini">Bagikan</button>
       <button id="unduh" type="button" title="Unduh desain (JSON)">Simpan</button>
       <label class="tombol" title="Buka desain (JSON)">Buka<input id="buka" type="file" accept=".json,application/json" hidden /></label>
+      <button id="misi-btn" type="button" title="Tantangan merakit">Misi</button>
       <button id="panduan-btn" type="button">Cara pakai</button>
       <button id="main-atas" type="button" class="utama">▶ Mainkan</button>
     </div>
@@ -52,6 +53,7 @@
 
     <aside id="ringkas" aria-label="Rakitan">
       <h2 id="judul-robot">BR</h2>
+      <div id="cad-panel"></div>
       <div id="slot-list"></div>
       <h3>Cek Rulebook</h3>
       <ul id="cek"></ul>
@@ -90,6 +92,15 @@
         <button value="batal" type="submit">Batal</button>
         <button value="ok" type="submit" class="utama" id="main-ok">Mulai</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-misi">
+    <form method="dialog">
+      <h2>Misi merakit <small id="misi-jumlah" class="muted"></small></h2>
+      <p class="muted">Selesaikan tantangan ini untuk mengenal aturan dan pilihan desain robot. Misi tercentang otomatis.</p>
+      <ol id="misi-list"></ol>
+      <div class="tombol-dlg"><button type="button" id="misi-reset">Ulangi dari awal</button><button type="submit" class="utama">Tutup</button></div>
     </form>
   </dialog>
 

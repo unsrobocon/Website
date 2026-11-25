@@ -1,8 +1,9 @@
 // Perakit Robot Werkudara: antarmuka. Desain disimpan di browser dan bisa dibagikan lewat tautan.
 import { GLTFExporter } from '../vendor/GLTFExporter.js';
-import { SLOT, MODUL, TEMPLAT, modulById, modulUntuk, nilaiParam, beratModul, terapkanAngka } from './katalog.js';
+import { SLOT, MODUL, TEMPLAT, VARIAN_CAD, modulById, modulUntuk, nilaiParam, beratModul, terapkanAngka } from './katalog.js';
 import { hitung, BATAS_BERAT } from './rakit.js';
-import { bangunRobot, buatCangkang } from './bangun.js';
+import { bangunRobot, buatCangkang, ukurAwal, buang } from './bangun.js';
+import { MISI, bacaSelesai, periksa } from './misi.js';
 import { Adegan } from './adegan.js';
 
 const KEY = 'perakit.desain';
@@ -35,6 +36,7 @@ function bersihkan(d) {
       if (s.multi) out[kind][s.id] = (Array.isArray(x) ? x : []).filter(ok).map(isi).slice(0, 12);
       else if (ok(x)) out[kind][s.id] = isi(x);
     }
+    if (VARIAN_CAD[d?.cad?.[kind]]?.kind === kind) (out.cad = out.cad || {})[kind] = d.cad[kind];
   }
   return out;
 }
@@ -54,11 +56,17 @@ function keHash(d) {
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+// data paket CAD (ukuran & massa tiap varian, GLB per pose)
+let CAD = {};
+try { const r = await fetch('cad/cad.json'); if (r.ok) CAD = await r.json(); } catch { /* tanpa CAD */ }
+let tampilCad = false;
+try { tampilCad = localStorage.getItem(`perakit.desain.cad`) === '1'; } catch { /* diblokir */ }
+
 let desain = dariHash();
 if (desain) history.replaceState(null, '', location.pathname);
 else {
   try { desain = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { desain = null; }
-  desain = desain ? bersihkan(desain) : bersihkan({ ...salin(TEMPLAT.werkudara), nama: 'Werkudara' });
+  desain = desain ? bersihkan(desain) : bersihkan({ ...salin(TEMPLAT['cad-a-a']), nama: 'Werkudara' });
 }
 let aktif = 'BR';
 try { aktif = localStorage.getItem(`${KEY}.aktif`) === 'TR' ? 'TR' : 'BR'; } catch { /* diblokir */ }
@@ -77,6 +85,7 @@ function render(slotBaru = null) {
   hitungSemua();
   document.body.dataset.kind = aktif;
   adegan.pasangRobot(bangunRobot(hasil[aktif]), slotBaru);
+  perbaruiCad();
   renderPalet();
   renderRingkas();
   simpan();
@@ -107,6 +116,17 @@ function lepas(slot, indeks = null) {
 }
 
 // ---------------------------------------------------------------- palet kiri
+// grup palet yang ditutup pengguna; di layar sempit grup yang sudah terisi mulai tertutup
+const sempit = matchMedia('(max-width: 1000px)').matches;
+const tertutup = new Set();
+if (sempit) for (const k of ['BR', 'TR']) for (const s of SLOT[k]) tertutup.add(`${k}.${s.id}`);
+$('#daftar-modul').addEventListener('toggle', (e) => {
+  const g = e.target.closest?.('details.grup');
+  if (!g) return;
+  const key = `${aktif}.${g.dataset.slot}`;
+  if (g.open) tertutup.delete(key); else tertutup.add(key);
+}, true);
+
 function renderPalet() {
   document.querySelectorAll('.tab button').forEach((b) => b.classList.toggle('aktif', b.dataset.kind === aktif));
   const d = desain[aktif], h = hasil[aktif];
@@ -126,7 +146,9 @@ function renderPalet() {
         <span class="baris-bawah"><span class="inf kg">${m.diukur ? '' : '± '}${kg(berat)}</span>${m.diukur ? '<span class="lencana isi" title="Angka hasil ukur tim (data/angka-modul.json)">angka asli</span>' : '<span class="lencana opsi" title="Perkiraan; isi angka asli di data/angka-modul.json">perkiraan</span>'}</span>
       </div>`;
     }).join('');
-    return `<section class="grup" data-slot="${s.id}"><h4>${esc(s.nama)} ${lencana}</h4>${kartu}</section>`;
+    const nama = s.multi ? `${d[s.id].length} terpasang` : d[s.id] ? esc(modulById(d[s.id].id).nama) : '';
+    const buka = tertutup.has(`${aktif}.${s.id}`) ? '' : ' open';
+    return `<details class="grup" data-slot="${s.id}"${buka}><summary><h4>${esc(s.nama)} ${lencana}</h4><span class="ringkas-isi">${nama}</span></summary>${kartu}</details>`;
   }).join('');
 }
 
@@ -172,6 +194,96 @@ function inputParam(slot, indeks, m, v) {
     <input type="number" id="p-${slot}-${indeks ?? 0}-${p.k}" min="${p.min}" max="${p.max}" step="${p.step}" value="${v[p.k]}" data-slot="${slot}" data-i="${indeks ?? ''}" data-k="${p.k}">`).join('')}</div>`;
 }
 
+// ---------------------------------------------------------------- misi
+const selesai = bacaSelesai();
+const flag = new Set();
+const awalCache = new Map();
+function awalOf(kind) {
+  if (kind === aktif) return adegan.ukuranAwal();
+  const key = JSON.stringify(desain[kind]);
+  if (!awalCache.has(key)) {
+    const r = bangunRobot(hasil[kind]);
+    awalCache.set(key, ukurAwal(r));
+    buang(r);
+  }
+  return awalCache.get(key);
+}
+const lolos = (kind, awal) => hasil[kind].siap && hasil[kind].cek.every((c) => c.ok || c.saran) && !!awal && awal.every((v) => v <= 700);
+let misiT = null;
+function cekMisi(segera = false) {
+  clearTimeout(misiT);
+  misiT = setTimeout(() => {
+    const awal = { BR: awalOf('BR'), TR: awalOf('TR') };
+    const ctx = { hasil, awal, lolos: { BR: lolos('BR', awal.BR), TR: lolos('TR', awal.TR) }, berat: hasil.BR.berat + hasil.TR.berat, flag };
+    const baru = periksa(ctx, selesai);
+    if (baru.length) kabar(`Misi selesai: ${baru.map((m) => m.judul).join(', ')} ✓`);
+    $('#misi-btn').textContent = `Misi ${selesai.size}/${MISI.length}`;
+    if ($('#dlg-misi').open) renderMisi();
+  }, segera ? 0 : 350);
+}
+function tandai(f) { flag.add(f); cekMisi(true); }
+function renderMisi() {
+  $('#misi-list').innerHTML = MISI.map((m) => `<li class="${selesai.has(m.id) ? 'beres' : ''}"><b>${esc(m.judul)}</b><span>${esc(m.tugas)}</span>${m.petunjuk && !selesai.has(m.id) ? `<small class="muted">Petunjuk: ${esc(m.petunjuk)}</small>` : ''}</li>`).join('');
+  $('#misi-jumlah').textContent = `${selesai.size} dari ${MISI.length} selesai`;
+}
+$('#misi-btn').addEventListener('click', () => { renderMisi(); $('#dlg-misi').showModal(); });
+$('#misi-reset').addEventListener('click', () => {
+  selesai.clear();
+  try { localStorage.removeItem('perakit.misi'); } catch { /* diblokir */ }
+  flag.clear();
+  renderMisi();
+  cekMisi(true);
+});
+
+// ---------------------------------------------------------------- varian & model CAD
+const fmtUk = (a) => a.map((v) => Math.round(v)).join(' × ');
+function urlCad() {
+  const kode = desain.cad?.[aktif];
+  const c = CAD[kode];
+  if (!tampilCad || !c) return null;
+  const p = adegan.u > 0.5 && c.pose.terjulur ? c.pose.terjulur : c.pose.awal;
+  return `cad/${p.glb}`;
+}
+let cadUrlTerakhir;
+function perbaruiCad() {
+  const u = urlCad();
+  if (u === cadUrlTerakhir) return;
+  cadUrlTerakhir = u;
+  adegan.tampilCad(u).catch(() => kabar('Model CAD gagal dimuat'));
+}
+function renderCad() {
+  const kode = desain.cad?.[aktif];
+  const c = CAD[kode];
+  const opsi = Object.entries(VARIAN_CAD).filter(([, v]) => v.kind === aktif)
+    .map(([k]) => `<option value="${k}"${k === kode ? ' selected' : ''}>${esc(CAD[k]?.nama || k)}</option>`).join('');
+  const h = hasil[aktif];
+  const awalKu = adegan.ukuranAwal();
+  $('#cad-panel').innerHTML = `
+    <label class="cad-pilih">Varian CAD <select id="cad-varian"><option value="">${kode ? 'Lepas dari varian CAD' : 'Pakai varian CAD…'}</option>${opsi}</select></label>
+    ${c ? `<table class="banding"><thead><tr><th></th><th>CAD ${esc(kode)}</th><th>Rakitan</th></tr></thead><tbody>
+      <tr><td>Awal (mm)</td><td>${fmtUk(c.pose.awal.ukuran)}</td><td>${awalKu ? fmtUk(awalKu) : '–'}</td></tr>
+      <tr><td>Terjulur (mm)</td><td>${c.pose.terjulur ? fmtUk(c.pose.terjulur.ukuran) : '–'}</td><td>${fmtUk(h.uk.julur)}</td></tr>
+      <tr><td>Massa</td><td>${kg(c.massaSiap)} <small class="muted">siap tanding</small></td><td>${kg(h.berat)}</td></tr>
+    </tbody></table>
+    <label class="cad-tampil"><input type="checkbox" id="cad-tampil"${tampilCad ? ' checked' : ''}> Tampilkan model CAD di samping <small class="muted">(geser Pose untuk pose terjulur)</small></label>` : ''}`;
+}
+$('#cad-panel').addEventListener('change', (e) => {
+  if (e.target.id === 'cad-tampil') {
+    tampilCad = e.target.checked;
+    try { localStorage.setItem('perakit.desain.cad', tampilCad ? '1' : '0'); } catch { /* diblokir */ }
+    perbaruiCad();
+    if (tampilCad) tandai('cad');
+    return;
+  }
+  if (e.target.id !== 'cad-varian') return;
+  const kode = e.target.value;
+  if (!kode) { if (desain.cad) delete desain.cad[aktif]; render(); return; }
+  desain[aktif] = bersihkan({ [aktif]: salin(VARIAN_CAD[kode].isi) })[aktif];
+  desain.cad = { ...(desain.cad || {}), [aktif]: kode };
+  render('rangka');
+  kabar(`${aktif} memakai modul varian CAD ${kode}`);
+});
+
 function renderRingkas() {
   const h = hasil[aktif], d = desain[aktif];
   $('#judul-robot').textContent = `${aktif} ${aktif === 'BR' ? 'Builder' : 'Transporter'}${desain.nama ? ` · ${desain.nama}` : ''}`;
@@ -213,6 +325,8 @@ function renderCek() {
     <div class="bar${lebih ? ' lebih' : ''}" role="img" aria-label="Berat ${kg(tot)} dari ${BATAS_BERAT} kg"><span class="br" style="width:${Math.min(100, (bBR / BATAS_BERAT) * 100)}%"></span><span class="tr" style="width:${Math.max(0, Math.min(100 - (bBR / BATAS_BERAT) * 100, (bTR / BATAS_BERAT) * 100))}%"></span></div>
     <details><summary>Rincian ${aktif}</summary><ul>${h.rincian.map((r) => `<li><span>${esc(r.nama)}</span><span>${kg(r.kg)}</span></li>`).join('')}</ul></details>`;
   const siap = hasil.BR.siap || hasil.TR.siap;
+  renderCad();
+  cekMisi();
   $('#main').disabled = !siap;
   $('#main-atas').disabled = !siap;
   $('#main').title = siap ? '' : 'Lengkapi slot wajib BR atau TR dulu';
@@ -284,7 +398,7 @@ $('#tiga').addEventListener('pointerup', (e) => {
 });
 
 // ---------------------------------------------------------------- alat panggung
-$('#pose').addEventListener('input', (e) => adegan.setPose(Number(e.target.value)));
+$('#pose').addEventListener('input', (e) => { adegan.setPose(Number(e.target.value)); perbaruiCad(); });
 $('#uji-gerak').addEventListener('click', (e) => {
   const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
   e.currentTarget.setAttribute('aria-pressed', String(on));
@@ -331,6 +445,7 @@ $('#buka').addEventListener('change', async (e) => {
 $('#bagikan').addEventListener('click', async () => {
   const url = `${location.origin}${location.pathname}#d=${keHash(desain)}`;
   try { await navigator.clipboard.writeText(url); kabar('Tautan desain disalin. Kirim ke teman tim!'); } catch { prompt('Salin tautan ini:', url); }
+  tandai('bagikan');
 });
 $('#panduan-btn').addEventListener('click', () => $('#dlg-panduan').showModal());
 
@@ -393,6 +508,7 @@ $('#dlg-main').addEventListener('close', async () => {
 });
 
 function bukaArena(url, judul) {
+  tandai('main');
   const fr = $('#arena-frame');
   $('#arena-judul').textContent = judul;
   $('#arena').hidden = false;
@@ -406,6 +522,7 @@ function tutupArena() {
 $('#kembali').addEventListener('click', tutupArena);
 
 // ---------------------------------------------------------------- mulai
+if (matchMedia('(pointer: coarse)').matches) $('.petunjuk').innerHTML = 'Ketuk <b>Pasang</b> pada modul, lalu ketuk bagian robot untuk melihat modulnya.';
 render();
 if (masalahAngka) setTimeout(() => kabar(masalahAngka), 600);
 let dilihat = false;

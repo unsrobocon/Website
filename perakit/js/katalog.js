@@ -99,8 +99,14 @@ export const MODUL = [
     param: [{ k: 'eMax', label: 'Juluran maks', unit: 'mm', min: 200, max: 600, step: 10, def: 400 }] },
   { id: 'vakum3', slot: 'ujung', untuk: ['BR'], nama: 'Vakum 3 cup + pompa',
     info: 'Menghisap Earth, Sky dan Mustika; wrist bisa memutar Sky.', berat: 1.4 },
+  { id: 'vakum4', slot: 'ujung', untuk: ['BR'], nama: 'Kepala vakum 4 cup (CAD BR-A)',
+    info: 'Kepala 4 cup dengan roll ±180°, dari paket CAD. Massa dari BOM CAD.', berat: 1.57 },
+  { id: 'jepit-sejajar', slot: 'ujung', untuk: ['BR'], nama: 'Penjepit sejajar ulir (CAD BR-C)',
+    info: 'Tanpa pompa vakum, bukaan 190–400 mm, bola Mustika dijepit langsung. Di simulator bekerja seperti vakum.', berat: 1.56 },
   { id: 'track-flipper', slot: 'tangga', untuk: ['BR'], nama: 'Track + flipper',
     info: 'Track turun untuk naik tangga ke Transfer Area dan ke L2.', berat: 3.6 },
+  { id: 'tumpuan-ulir', slot: 'tangga', untuk: ['BR'], nama: 'Pemanjat 3 tumpuan (CAD BR-B)',
+    info: 'Tumpuan depan & belakang pada slide ulir bola untuk melangkah ke L2. Di simulator bergerak seperti track + flipper.', berat: 8.24 },
 
   // ------------------------------------------------------------ TR: lift rahang, penjepit
   { id: 'lift-rahang-belt', slot: 'liftRahang', untuk: ['TR'], nama: 'Lift rahang (belt)',
@@ -122,6 +128,13 @@ export const MODUL = [
       { k: 'openMax', label: 'Bukaan rahang maks', unit: 'mm', min: 200, max: 680, step: 2, def: 390 },
     ] },
 
+  { id: 'jepit-pneumatik', slot: 'penjepit', untuk: ['TR'], nama: 'Penjepit Earth pneumatik (CAD TR-A/B)',
+    info: 'Silinder pneumatik: membuka-menutup sangat cepat. Massa termasuk tabung & katup (BOM CAD).', openSpeed: 600, berat: 4.56,
+    param: [
+      { k: 'kantong', label: 'Lebar kantong U', unit: 'mm', min: 300, max: 700, step: 2, def: 444 },
+      { k: 'openMax', label: 'Bukaan rahang maks', unit: 'mm', min: 200, max: 680, step: 2, def: 390 },
+    ] },
+
   // ------------------------------------------------------------ aksesori (boleh banyak)
   { id: 'kamera', slot: 'aksesori', untuk: ['BR', 'TR'], nama: 'Kamera depan', sensor: true,
     info: 'Melihat benda dan robot lain untuk mode otonom.', berat: 0.15 },
@@ -132,6 +145,8 @@ export const MODUL = [
     info: 'Tempat Mustika di belakang BR (usulan desain 2027).', berat: 0.6 },
   { id: 'bumper', slot: 'aksesori', untuk: ['BR', 'TR'], nama: 'Bumper karet',
     info: 'Melindungi rangka saat bersentuhan; menambah 15 mm di tiap sisi.', berat: 0.5, tebal: 0.015 },
+  { id: 'menara-sky', slot: 'aksesori', untuk: ['TR'], nama: 'Menara Sky + rak 2 Sky (CAD TR-A)',
+    info: 'Rel teleskop + lengan ayun 270 mm + rak, agar TR membawa 3 Sky sekali jalan. Terlipat saat start.', berat: 4.27 },
   { id: 'lampu', slot: 'aksesori', untuk: ['BR', 'TR'], nama: 'Lampu status',
     info: 'Menara lampu untuk tahu mode robot dari jauh.', berat: 0.12 },
   { id: 'estop', slot: 'aksesori', untuk: ['BR', 'TR'], nama: 'Tombol darurat',
@@ -164,9 +179,37 @@ export function beratModul(m, kind, isian, pasangan) {
 // Desain awal ---------------------------------------------------------------------------------
 const pasang = (id, v = {}) => ({ id, v });
 
+// Varian dari paket CAD (desain-robot/cad). Ukuran rangka dipilih agar ukuran awal mendekati CAD;
+// angka gerak tetap perkiraan Perakit. Model CAD asli ditampilkan berdampingan (perakit/cad/).
+export const VARIAN_CAD = {
+  'BR-A': { kind: 'BR', isi: { rangka: pasang('rangka-hollow', { lebar: 668, panjang: 650 }), penggerak: pasang('mecanum'), motor: pasang('pg45'),
+    baterai: pasang('lipo-6s'), kontroler: pasang('stm32-jetson'), lift: pasang('lift-belt', { hMax: 960 }),
+    boom: pasang('boom-pendek', { eMax: 300 }), ujung: pasang('vakum4'), tangga: pasang('track-flipper'),
+    aksesori: [pasang('kamera'), pasang('lidar', { tinggi: 80 }), pasang('keranjang'), pasang('estop')] } },
+  'BR-B': { kind: 'BR', isi: { rangka: pasang('rangka-hollow', { lebar: 668, panjang: 670 }), penggerak: pasang('mecanum'), motor: pasang('pg45'),
+    baterai: pasang('lipo-6s'), kontroler: pasang('stm32-jetson'), lift: pasang('lift-belt', { hMax: 960 }),
+    boom: pasang('boom-pendek', { eMax: 300 }), ujung: pasang('vakum4'), tangga: pasang('tumpuan-ulir'),
+    aksesori: [pasang('kamera'), pasang('lidar', { tinggi: 80 }), pasang('keranjang'), pasang('estop')] } },
+  'BR-C': { kind: 'BR', isi: { rangka: pasang('rangka-hollow', { lebar: 668, panjang: 662 }), penggerak: pasang('mecanum'), motor: pasang('pg45'),
+    baterai: pasang('lipo-6s'), kontroler: pasang('stm32-jetson'), lift: pasang('lift-belt', { hMax: 980 }),
+    boom: pasang('boom-pendek', { eMax: 300 }), ujung: pasang('jepit-sejajar'), tangga: pasang('track-flipper'),
+    aksesori: [pasang('kamera'), pasang('lidar', { tinggi: 80 }), pasang('estop')] } },
+  'TR-A': { kind: 'TR', isi: { rangka: pasang('rangka-hollow', { lebar: 668, panjang: 668 }), penggerak: pasang('mecanum'), motor: pasang('pg36'),
+    baterai: pasang('lipo-6s'), kontroler: pasang('stm32'), liftRahang: pasang('lift-rahang-belt', { jawMax: 646 }),
+    penjepit: pasang('jepit-pneumatik', { kantong: 444, openMax: 390 }), aksesori: [pasang('menara-sky'), pasang('estop')] } },
+  'TR-B': { kind: 'TR', isi: { rangka: pasang('rangka-hollow', { lebar: 480, panjang: 668 }), penggerak: pasang('mecanum'), motor: pasang('pg36'),
+    baterai: pasang('lipo-6s'), kontroler: pasang('stm32'), liftRahang: pasang('lift-rahang-belt', { jawMax: 646 }),
+    penjepit: pasang('jepit-pneumatik', { kantong: 380, openMax: 360 }), aksesori: [pasang('estop')] } },
+};
+const dariCad = (br, tr, nama) => ({ nama, cad: { BR: br, TR: tr }, BR: VARIAN_CAD[br].isi, TR: VARIAN_CAD[tr].isi });
+
 export const TEMPLAT = {
+  'cad-a-a': dariCad('BR-A', 'TR-A', 'CAD BR-A + TR-A (rekomendasi)'),
+  'cad-a-b': dariCad('BR-A', 'TR-B', 'CAD BR-A + TR-B (TR ramping 480)'),
+  'cad-b-a': dariCad('BR-B', 'TR-A', 'CAD BR-B + TR-A (pemanjat 3 tumpuan)'),
+  'cad-c-a': dariCad('BR-C', 'TR-A', 'CAD BR-C + TR-A (penjepit tanpa vakum)'),
   werkudara: {
-    nama: 'Werkudara (seperti R1 & R3)',
+    nama: 'Werkudara R1 & R3 (robot 2026)',
     BR: { rangka: pasang('rangka-hollow', { lebar: 668, panjang: 623 }), penggerak: pasang('mecanum'), motor: pasang('pg45'),
       baterai: pasang('lipo-6s'), kontroler: pasang('stm32-jetson'), lift: pasang('lift-belt', { hMax: 960 }),
       boom: pasang('boom-pendek', { eMax: 240 }), ujung: pasang('vakum3'), tangga: pasang('track-flipper'),

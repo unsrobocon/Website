@@ -71,14 +71,36 @@
 
   <h2>4. Alur latihan yang disarankan</h2>
   <ol>
+    <li><b>Tutorial</b>: menu awal → <i>Mulai cepat → Tutorial</i>. Ikuti 11 langkah sampai BR menyusun Earth pertama Anda. Lalu kerjakan <a href="kuis.html">Kuis aturan</a>.</li>
     <li><b>Kenali TR</b>: Mode Latihan bebas, BR otonom, kemudikan TR mengantar 2 tumpukan Earth ke Transfer Area.</li>
     <li><b>Ukur diri</b>: menu <i>Latihan TR → Antar 2 tumpukan Earth</i>, isi nama, ulangi sampai waktunya stabil.</li>
     <li><b>Sky dan Mustika</b>: tantangan <i>Antar 2 Sky</i> lalu <i>Mustika ke BR</i>.</li>
-    <li><b>Pertandingan penuh</b>: Mode Pertandingan, lawan <i>Otonom — penuh</i>. Setelah selesai, tekan <kbd>L</kbd> untuk melihat waktu tiap tugas dan <b>Putar ulang</b> untuk evaluasi.</li>
+    <li><b>Kenali BR</b>: <i>Latihan BR</i> (susun 1 menara, naik ke L2) dengan BR manual, untuk memahami lift, boom, wrist, track dan flipper sebelum menulis program otonomnya.</li>
+    <li><b>Pertandingan penuh</b>: Mode Pertandingan, lawan <i>Otonom — penuh</i>. Saat buzzer muncul layar hasil (skor, rincian, saran). Tekan <kbd>L</kbd> untuk melihat waktu tiap tugas dan <b>Putar ulang</b> untuk evaluasi.</li>
     <li><b>Strategi</b>: coba <i>Strategi otonom</i> lain atau susun sendiri, bandingkan skornya.</li>
   </ol>
 
-  <h2>5. Melapor bug</h2>
+  <h2>5. Istilah penting</h2>
+  <p>Lihat juga nama area langsung di lapangan: tekan <kbd>Y</kbd> di simulator. Bagian robot: <a href="robot.html">Kenali robot</a>.</p>
+  <table>
+    <tr><td><b>TR</b> (Transporter)</td><td>Robot pengantar, boleh dikemudikan operator (11.2). Robot kita: TR R3, mecanum + penjepit.</td></tr>
+    <tr><td><b>BR</b> (Builder)</td><td>Robot penyusun menara, wajib otomatis penuh (11.3). Robot kita: BR R1, lift 2 tingkat + boom + vakum + track + flipper.</td></tr>
+    <tr><td><b>Earth Block</b></td><td>Balok 350 mm warna tim, 20 per tim di Storage. Dua Earth menjadi lapis bawah dan tengah menara.</td></tr>
+    <tr><td><b>Sky Block</b></td><td>Kubus 200 mm dua warna (merah/biru) di Ground Shared Area. Puncak menara; warna yang menghadap atas menentukan pemilik poin, dan boleh dibalik lawan.</td></tr>
+    <tr><td><b>Mustika</b></td><td>Bola di Mustika Pillar. Boleh diambil setelah Sanctuary Mandate, diabadikan BR di Central Pillar: +250.</td></tr>
+    <tr><td><b>Storage</b></td><td>Tempat Earth tim di pojok lapangan; TR mengambil dari sini.</td></tr>
+    <tr><td><b>Transfer Area</b></td><td>Kotak 1000 × 1000 mm di ujung atas ramp. TR menaruh blok di sini (+5 per blok), BR mengambilnya.</td></tr>
+    <tr><td><b>Level 1 / Level 2</b></td><td>Panggung setinggi 600 mm (6 × 6 m) dan 900 mm (3 × 3 m) di tengah. BR naik lewat tangga; TR tidak boleh masuk L1.</td></tr>
+    <tr><td><b>Building Spot</b></td><td>Kotak 500 × 500 mm tempat menara disusun: pojok L1 tim, L1 Shared, dan pojok L2.</td></tr>
+    <tr><td><b>Shared</b></td><td>Area yang boleh dipakai kedua tim: Ground Shared Area (Sky), Building Spot L1 Shared, seluruh L2.</td></tr>
+    <tr><td><b>Sanctuary Mandate</b></td><td>Dua menara lengkap warna tim pada saat yang sama, minimal satu di Shared (3.6.1). Syarat mengambil Mustika.</td></tr>
+    <tr><td><b>Failure</b></td><td>Earth di tempat atau urutan yang salah: Earth itu dikeluarkan (5.1.4).</td></tr>
+    <tr><td><b>Sky invalid</b></td><td>Sky ditaruh salah (langsung di spot, di atas satu Earth, dijatuhkan): dikeluarkan + Forced Retry (6.3).</td></tr>
+    <tr><td><b>Retry / Forced Retry</b></td><td>Robot diangkat kembali ke Start/Retry Zone (BR yang sudah di L1: L1 Retry Zone). Forced Retry = diperintahkan wasit karena pelanggaran (Bagian 6).</td></tr>
+    <tr><td><b>Freeze</b></td><td>Semua aktuator BR berhenti seketika atas perintah wasit, lalu Resume (11.4).</td></tr>
+  </table>
+
+  <h2>6. Melapor bug</h2>
   <p>Catat: apa yang dilakukan, apa yang terjadi, apa yang diharapkan, pengaturan menu (lihat alamat di browser), dan tangkapan layar. Bila perlu, simpan rekaman pertandingan (<kbd>L</kbd> → <b>Putar ulang</b> → <b>Simpan</b>). Isi juga daftar uji di <code>UJI-MANUAL.md</code>.</p>
 
   <p><a href="index.html">← Kembali ke simulator</a></p>

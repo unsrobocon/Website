@@ -1,0 +1,183 @@
+{
+ "BR-A": {
+  "nama": "BR-A Rekomendasi (mecanum + track + flipper, vakum + keranjang)",
+  "massaCad": 21.22,
+  "massaSiap": 24.41,
+  "jumlahPart": 134,
+  "pose": {
+   "awal": {
+    "glb": "BR-A_awal.glb",
+    "ukuran": [
+     671.0,
+     668.0,
+     692.5
+    ],
+    "batas": [
+     700.0,
+     700.0,
+     700.0
+    ],
+    "patuh": true
+   },
+   "terjulur": {
+    "glb": "BR-A_terjulur.glb",
+    "ukuran": [
+     1256.4,
+     668.0,
+     1185.4
+    ],
+    "batas": [
+     1400.0,
+     1000.0,
+     1200.0
+    ],
+    "patuh": true
+   }
+  }
+ },
+ "BR-B": {
+  "nama": "BR-B Pemanjat tiga tumpuan (F-M-R), vakum + keranjang",
+  "massaCad": 24.6,
+  "massaSiap": 28.29,
+  "jumlahPart": 128,
+  "pose": {
+   "awal": {
+    "glb": "BR-B_awal.glb",
+    "ukuran": [
+     693.2,
+     668.0,
+     692.5
+    ],
+    "batas": [
+     700.0,
+     700.0,
+     700.0
+    ],
+    "patuh": true
+   },
+   "terjulur": {
+    "glb": "BR-B_terjulur.glb",
+    "ukuran": [
+     1256.4,
+     668.0,
+     1185.4
+    ],
+    "batas": [
+     1400.0,
+     1000.0,
+     1200.0
+    ],
+    "patuh": true
+   }
+  }
+ },
+ "BR-C": {
+  "nama": "BR-C Penjepit mekanis ulir (tanpa vakum), track + flipper",
+  "massaCad": 20.52,
+  "massaSiap": 23.6,
+  "jumlahPart": 129,
+  "pose": {
+   "awal": {
+    "glb": "BR-C_awal.glb",
+    "ukuran": [
+     685.0,
+     668.0,
+     692.5
+    ],
+    "batas": [
+     700.0,
+     700.0,
+     700.0
+    ],
+    "patuh": true
+   },
+   "terjulur": {
+    "glb": "BR-C_terjulur.glb",
+    "ukuran": [
+     985.0,
+     668.0,
+     1150.0
+    ],
+    "batas": [
+     1400.0,
+     1000.0,
+     1200.0
+    ],
+    "patuh": true
+   }
+  }
+ },
+ "TR-A": {
+  "nama": "TR-A Rekomendasi (U 668, penjepit pneumatik, menara Sky + rak)",
+  "massaCad": 17.61,
+  "massaSiap": 20.25,
+  "jumlahPart": 103,
+  "pose": {
+   "awal": {
+    "glb": "TR-A_awal.glb",
+    "ukuran": [
+     668.0,
+     668.1,
+     690.0
+    ],
+    "batas": [
+     700.0,
+     700.0,
+     700.0
+    ],
+    "patuh": true
+   },
+   "terjulur": {
+    "glb": "TR-A_terjulur.glb",
+    "ukuran": [
+     1327.0,
+     668.1,
+     690.0
+    ],
+    "batas": [
+     1400.0,
+     1000.0,
+     1200.0
+    ],
+    "patuh": true
+   }
+  }
+ },
+ "TR-B": {
+  "nama": "TR-B Ramping 480 (U 480, kantong 380, satu penjepit di atas lengan)",
+  "massaCad": 11.89,
+  "massaSiap": 13.67,
+  "jumlahPart": 74,
+  "pose": {
+   "awal": {
+    "glb": "TR-B_awal.glb",
+    "ukuran": [
+     668.0,
+     480.1,
+     690.0
+    ],
+    "batas": [
+     700.0,
+     700.0,
+     700.0
+    ],
+    "patuh": true
+   },
+   "terjulur": {
+    "glb": "TR-B_terjulur.glb",
+    "ukuran": [
+     668.0,
+     480.1,
+     690.0
+    ],
+    "batas": [
+     1400.0,
+     1000.0,
+     1200.0
+    ],
+    "patuh": true
+   }
+  }
+ },
+ "_sumber": "Paket CAD Werkudara 2027 (desain-robot/cad/keluaran, penampil/data.json). Sumbu GLB: mm, +X ke depan, +Y ke atas."
+}

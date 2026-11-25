@@ -149,6 +149,28 @@ export function buatCangkang(hasil) {
     g.add(tag(mm, 'motor'));
   }
 
+  // ---- modul dari paket CAD (bagian statisnya)
+  if (kind === 'BR' && t.tangga?.m.id === 'tumpuan-ulir') {
+    const tp = new THREE.Group();
+    tp.name = 'perakit_tumpuan';
+    const mRel = mat(0x9aa3ad, { metalness: 0.6 }), mKaki = mat(0x2fa36b);
+    for (const z of [zf - 0.03, zr + 0.03]) {
+      for (const sx of [-1, 1]) box(tp, sx * 0.09 - 0.012, sx * 0.09 + 0.012, rw + 0.06, 0.52, z - 0.012, z + 0.012, mRel, 'rel_ulir');
+      box(tp, -0.12, 0.12, 0.012, 0.03, z - 0.04, z + 0.04, mKaki, 'kaki_tumpuan');
+      box(tp, -0.01, 0.01, 0.03, rw + 0.06, z - 0.01, z + 0.01, mGelap, 'batang_tumpuan');
+    }
+    g.add(tag(tp, 'tangga'));
+  }
+  if (kind === 'TR' && t.penjepit?.m.id === 'jepit-pneumatik') {
+    const pn = new THREE.Group();
+    pn.name = 'perakit_pneumatik';
+    const tb = cyl(pn, 0.03, 0.16, mat(0x3a7bd5, { metalness: 0.5 }), 'tabung_udara', 20);
+    tb.rotation.x = Math.PI / 2;
+    tb.position.set(-(G.armIn + hw) / 2, rw + 0.095, zf - 0.14);
+    box(pn, -(G.armIn + hw) / 2 - 0.02, -(G.armIn + hw) / 2 + 0.02, rw + 0.06, rw + 0.075, zf - 0.06, zf - 0.03, mGelap, 'katup');
+    g.add(tag(pn, 'penjepit'));
+  }
+
   // ---- baterai & kontroler di atas pelat, di belakang
   const atas = rw + 0.06;
   if (t.baterai) {
@@ -208,6 +230,15 @@ export function buatCangkang(hasil) {
       for (const sx of [-1, 1]) box(a, sx * hw, sx * G.hw, y0, y1, zr, zf, mb, 'bumper_sisi');
       if (kind === 'BR') box(a, -G.hw, G.hw, y0, y1, zf, G.zf, mb, 'bumper_depan');
       else for (const sx of [-1, 1]) box(a, sx * G.armIn, sx * G.hw, y0, y1, zf, G.zf, mb, 'bumper_depan');
+    } else if (x.m.id === 'menara-sky') {
+      // menara terlipat di sisi kanan belakang + rak 2 Sky (200 mm) di atas lengan kanan
+      const xx = (G.armIn + hw) / 2, mRel = mat(0x9aa3ad, { metalness: 0.6 });
+      for (const dx of [-0.02, 0.02]) box(a, xx + dx - 0.008, xx + dx + 0.008, atas, 0.66, zr + 0.03, zr + 0.05, mRel, 'rel_teleskop');
+      box(a, xx - 0.03, xx + 0.03, 0.6, 0.63, zr + 0.03, zr + 0.3, mAksen, 'lengan_ayun');
+      // rak 2 Sky di atas rangka belakang, kiri tiang rahang (tetap di dalam tapak robot)
+      const r0 = -hw + 0.03, r1 = Math.min(-0.08, r0 + 0.21), z0 = zr + 0.02, z1 = Math.min(G.rearZ1, z0 + 0.21);
+      box(a, r0, r1, atas + 0.25, atas + 0.258, z0, z1, mGelap, 'rak_sky');
+      for (const x of [r0, r1 - 0.008]) for (const z of [z0, z1 - 0.008]) box(a, x, x + 0.008, atas, atas + 0.25, z, z + 0.008, mGelap, 'tiang_rak');
     } else if (x.m.id === 'lampu') {
       const xx = kind === 'BR' ? -hw + 0.04 : -hw + 0.04, z = zr + 0.04;
       box(a, xx - 0.008, xx + 0.008, atas, atas + 0.12, z - 0.008, z + 0.008, mGelap, 'tiang_lampu');
@@ -285,4 +316,25 @@ export function pose(robot, u = 0, osc = 0) {
   } else {
     api.apply({ jaw: P.jaw.start + (P.jaw.max - P.jaw.start) * u, open: P.open.start - (P.open.start - P.open.min) * Math.max(0, osc) });
   }
+}
+
+// Ukuran awal [panjang (z), lebar (x), tinggi (y)] mm dari bagian yang terlihat pada pose awal
+// (bentuk sama dengan ukuran() simulator). Robot dibiarkan pada pose awal.
+export function ukurAwal(robot) {
+  pose(robot, 0);
+  robot.updateMatrixWorld(true);
+  const b = new THREE.Box3();
+  const tampak = (n) => { for (let p = n; p; p = p.parent) if (!p.visible) return false; return true; };
+  robot.traverse((n) => {
+    if (!n.isMesh || !tampak(n)) return;
+    n.geometry.computeBoundingBox();
+    b.union(n.geometry.boundingBox.clone().applyMatrix4(n.matrixWorld));
+  });
+  if (b.isEmpty()) return null;
+  const s = b.getSize(new THREE.Vector3());
+  return [Math.round(s.z * 1000), Math.round(s.x * 1000), Math.round(b.max.y * 1000)];
+}
+
+export function buang(obj) {
+  obj.traverse((n) => { if (n.isMesh) { n.geometry.dispose(); n.material.dispose(); } });
 }

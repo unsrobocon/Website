@@ -39,6 +39,17 @@ export function showMenu(s) {
   };
   el.innerHTML = `<form class="menu-inner">
     <h1>Simulator Werkudara <small>ABU Robocon 2027 — The Pursuit of Mustika Nusantara</small></h1>
+    <div class="cepat" aria-label="Mulai cepat">
+      <a href="?tutorial=1&tim=merah&mode=latihan&otoBR=0&otoTR=0&lawan=0&retry=0&forced=peringatan"><b>Tutorial</b><small>Anggota baru: langkah demi langkah</small></a>
+      <a href="?demo=1&otoBR=1&otoTR=1&lawan=penuh&retry=5&forced=otomatis"><b>Demo berpemandu</b><small>4 robot otonom + keterangan, untuk presentasi</small></a>
+      <a href="?mulai=1&mode=pertandingan&otoBR=1&otoTR=0&lawan=penuh&storage=rapat&retry=5&forced=otomatis"><b>Pertandingan</b><small>Anda TR vs robot komputer</small></a>
+      <a href="?mulai=1&tantangan=earth&otoBR=1&retry=5&forced=otomatis"><b>Latihan TR</b><small>Antar 2 tumpukan Earth berwaktu</small></a>
+      <a href="?mulai=1&tantangan=brmenara&otoBR=0&retry=5&forced=otomatis"><b>Latihan BR</b><small>Susun menara dengan BR manual</small></a>
+      <a href="robot.html" target="_blank"><b>Kenali robot</b><small>Bagian-bagian BR dan TR dalam 3D</small></a>
+      <a href="kuis.html" target="_blank"><b>Kuis aturan</b><small>Uji pemahaman Rulebook</small></a>
+      <a href="panduan.html" target="_blank"><b>Panduan cepat</b><small>Satu halaman: tombol, alur latihan, istilah</small></a>
+    </div>
+    <h2 class="atur">Atur sendiri</h2>
     ${Object.keys(PILIHAN).map(row).join('')}
     ${robotRow('br', 'BR')}${robotRow('tr', 'TR')}
     <div class="row"><div class="lab">Kalibrasi</div><div class="opts">
@@ -59,7 +70,8 @@ export function showMenu(s) {
     <p class="warn" id="menu-ukuran"></p>
     <p class="muted" id="menu-note"></p>
     <div class="actions"><button type="submit">Mulai</button></div>
-    <p class="muted">Di dalam simulator: <kbd>Enter</kbd> timer · <kbd>H</kbd> bantuan · <kbd>O</kbd>/<kbd>I</kbd> BR/TR otonom · <kbd>L</kbd> catatan waktu · <kbd>Esc</kbd> kembali ke menu ini. Anggota baru: baca <a href="panduan.html" target="_blank">Panduan cepat</a>.</p>
+    <p class="muted" id="versi"></p>
+    <p class="muted">Di dalam simulator: <kbd>Enter</kbd> timer · <kbd>H</kbd> bantuan · <kbd>O</kbd>/<kbd>I</kbd> BR/TR otonom · <kbd>L</kbd> catatan waktu · <kbd>Esc</kbd> kembali ke menu ini. Anggota baru: baca <a href="panduan.html" target="_blank">Panduan cepat</a>, coba <b>Tutorial</b>, lalu <a href="kuis.html" target="_blank">Kuis aturan</a>.</p>
   </form>`;
   el.classList.add('show');
   const form = el.querySelector('form');
@@ -302,5 +314,22 @@ export function showMenu(s) {
     saveSettings(v);
     location.href = startUrl(v);
   });
-  form.querySelector('button[type=submit]').focus();
+  form.querySelector('button[type=submit]').focus({ preventScroll: true });   // Enter langsung Mulai, tetapi menu tetap dibuka dari atas (Mulai cepat)
+  tampilVersi();
+}
+
+// Versi rilis (versi.json ditulis tools/rilis.cjs saat deploy) dan keterangan bila dibuka dari internet
+export function lokal(host = location.hostname) {
+  return location.protocol === 'file:' || ['localhost', '127.0.0.1', '::1', '[::1]', ''].includes(host) || /^(10|192\.168|172\.(1[6-9]|2\d|3[01]))\./.test(host) || /\.local$/.test(host);
+}
+
+function tampilVersi() {
+  const el = document.getElementById('versi');
+  if (!el) return;
+  const online = lokal() ? '' : ' Dibuka dari internet: main di dua laptop (arena), jembatan Python / ROS 2 dan papan skor tim butuh server lokal (lihat README); fitur lain berjalan penuh di browser.';
+  el.textContent = `Versi lokal (dari folder).${online}`;
+  fetch('versi.json', { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((v) => { if (v && v.versi) el.textContent = `Versi ${v.versi}${v.tanggal ? ` · ${v.tanggal}` : ''}.${online}`; })
+    .catch(() => {});
 }
