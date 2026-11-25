@@ -39,9 +39,15 @@ roda, motor, baterai, aksesori) diekspor ke GLB dan dipakai simulator sebagai *G
   (pose awal, atau pose terjulur bila slider Pose digeser lewat setengah). Berkasnya di `perakit/cad/` (disalin dari
   `desain-robot/cad/keluaran`, pose awal + terjulur, beserta `cad.json`). Di arena, robot tetap memakai rakitan:
   mekanisme CAD belum punya rig gerak.
-- **Misi** (tombol di atas): 9 tantangan merakit yang tercentang otomatis (robot lolos Rulebook, TR ramping 12 Sky,
-  diet 40 kg, TR cepat, BR dengan kamera + LiDAR, pas di kotak 700 mm, bandingkan CAD, main di arena, bagikan).
+- **Misi** (tombol di atas): 10 tantangan merakit yang tercentang otomatis (robot lolos Rulebook, TR ramping 12 Sky,
+  diet 40 kg, TR cepat, BR dengan kamera + LiDAR, pas di kotak 700 mm, bandingkan CAD, main di arena, satu babak penuh, bagikan).
   Daftar ada di `perakit/js/misi.js`.
+- **Hasil di arena**: setelah satu pertandingan selesai (timer 0:00) dan menekan *Kembali ke perakit*, skor,
+  waktu sampai Mandate/Mustika dan failure/pelanggaran/retry tampil di panel kanan (5 terakhir, disimpan di browser).
+  Sumbernya catatan pertandingan simulator (`simabu.riwayat`).
+- **Urungkan** (tombol atau Ctrl+Z): membatalkan perubahan terakhir, sampai 50 langkah.
+- **Unduh daftar modul (CSV)**: semua modul BR dan TR dengan ukuran, berat perkiraan dan apakah angkanya sudah diukur.
+  Pemisah titik koma agar langsung terbuka rapi di Excel berbahasa Indonesia.
 
 ### Mengisi angka asli robot
 

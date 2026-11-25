@@ -180,3 +180,14 @@ fieldset label small { color: var(--muted); }
 #misi-list span { font-size: 13px; }
 #misi-list small { font-size: 12px; }
 #misi-btn { border-color: rgba(255, 212, 0, 0.45); }
+
+/* daftar modul & hasil arena */
+.kecil-btn { margin-top: 8px; font-size: 12px; padding: 5px 10px; }
+#hasil-arena { margin-top: 16px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 212, 0, 0.05); font-size: 13px; }
+#hasil-arena h3 { margin: 0 0 6px; }
+#hasil-arena .skor { font-size: 22px; font-weight: 700; }
+#hasil-arena .skor.menang { color: var(--ok, #3ecf8e); }
+#hasil-arena .skor.kalah { color: var(--bad, #ff6b6b); }
+#hasil-arena table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+#hasil-arena td { padding: 2px 0; border-top: 1px solid var(--line); }
+#hasil-arena td:last-child { text-align: right; }

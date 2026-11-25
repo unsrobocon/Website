@@ -71,7 +71,26 @@ else {
 let aktif = 'BR';
 try { aktif = localStorage.getItem(`${KEY}.aktif`) === 'TR' ? 'TR' : 'BR'; } catch { /* diblokir */ }
 
-const simpan = () => { try { localStorage.setItem(KEY, JSON.stringify(desain)); } catch { /* diblokir */ } };
+// riwayat urungkan: satu langkah per perubahan; geseran slider yang beruntun (< 0,7 s) dihitung satu langkah
+const URUNG_MAKS = 50;
+const urung = [];
+let jejak = JSON.stringify(desain), jejakT = 0, sedangUrung = false;
+function catat(gabung = false) {
+  const s = JSON.stringify(desain);
+  if (s === jejak) return;
+  if (!sedangUrung && !(gabung && Date.now() - jejakT < 700)) {
+    urung.push(jejak);
+    if (urung.length > URUNG_MAKS) urung.shift();
+  }
+  jejakT = sedangUrung ? 0 : Date.now();
+  jejak = s;
+  const b = document.querySelector('#urung');
+  if (b) b.disabled = urung.length === 0;
+}
+const simpan = (gabung = false) => {
+  catat(gabung);
+  try { localStorage.setItem(KEY, JSON.stringify(desain)); } catch { /* diblokir */ }
+};
 
 // ---------------------------------------------------------------- 3D
 const adegan = new Adegan($('#tiga'));
@@ -355,7 +374,7 @@ $('#slot-list').addEventListener('input', (e) => {
     adegan.pasangRobot(bangunRobot(hasil[aktif]));
     renderCek();
     renderPalet();
-    simpan();
+    simpan(true);
   });
 });
 $('#slot-list').addEventListener('dragover', (e) => { if ([...e.dataTransfer.types].includes('text/x-modul')) e.preventDefault(); });
@@ -449,6 +468,58 @@ $('#bagikan').addEventListener('click', async () => {
 });
 $('#panduan-btn').addEventListener('click', () => $('#dlg-panduan').showModal());
 
+// ---------------------------------------------------------------- urungkan
+function urungkan() {
+  if (!urung.length) { kabar('Tidak ada yang bisa diurungkan'); return; }
+  desain = bersihkan(JSON.parse(urung.pop()));
+  $('#nama').value = desain.nama || '';
+  sedangUrung = true;
+  render();
+  sedangUrung = false;
+  kabar('Perubahan terakhir diurungkan');
+}
+$('#urung').addEventListener('click', urungkan);
+document.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.key.toLowerCase() !== 'z') return;
+  // di kotak isian, Ctrl+Z bawaan browser yang dipakai
+  if (e.target.closest('input[type="text"], input[type="number"], textarea') || document.querySelector('dialog[open]') || !$('#arena').hidden) return;
+  e.preventDefault();
+  urungkan();
+});
+
+// ---------------------------------------------------------------- daftar modul (CSV)
+function teksParam(m, v) {
+  return (m.param || []).map((p) => `${p.label} ${v[p.k]} ${p.unit || ''}`.trim()).join('; ');
+}
+function daftarModulCsv() {
+  const sel = (v) => (/[",;\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+  const baris = [['Robot', 'Slot', 'Modul', 'Ukuran / setelan', 'Berat perkiraan (kg)', 'Angka diukur?']];
+  for (const kind of ['BR', 'TR']) {
+    const h = hasil[kind];
+    for (const s of SLOT[kind]) {
+      const list = s.multi ? h.t[s.id] : h.t[s.id] ? [h.t[s.id]] : [];
+      for (const x of list) {
+        const b = beratModul(x.m, kind, x.v, h.t.penggerak?.m);
+        baris.push([kind, s.nama, x.m.nama, teksParam(x.m, x.v), b.toFixed(2), x.m.diukur ? 'ya' : 'perkiraan']);
+      }
+    }
+    const lain = h.rincian[h.rincian.length - 1];
+    baris.push([kind, 'Lain-lain', lain.nama, '', lain.kg.toFixed(2), '']);
+    baris.push([kind, 'TOTAL', h.siap ? h.k.nama : `${kind} belum lengkap`, '', h.berat.toFixed(1), '']);
+  }
+  baris.push(['BR+TR', 'TOTAL TIM', `Batas Rule 11.8: ${BATAS_BERAT} kg`, '', (hasil.BR.berat + hasil.TR.berat).toFixed(1), '']);
+  // pemisah ';' dan BOM agar Excel berbahasa Indonesia langsung membaca kolomnya
+  return '\ufeff' + baris.map((r) => r.map(sel).join(';')).join('\r\n');
+}
+$('#belanja').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([daftarModulCsv()], { type: 'text/csv;charset=utf-8' }));
+  a.download = `daftar-modul-${(desain.nama || 'werkudara').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  kabar('Daftar modul BR dan TR diunduh (CSV)');
+});
+
 let kabarT = null;
 function kabar(t) {
   const el = $('#pesan');
@@ -507,8 +578,42 @@ $('#dlg-main').addEventListener('close', async () => {
   bukaArena(`../simulator/index.html?${q}`, `${hasil.BR.siap ? hasil.BR.k.nama : 'BR R1'} + ${hasil.TR.siap ? hasil.TR.k.nama : 'TR R3'}`);
 });
 
+// ---------------------------------------------------------------- hasil arena
+// Simulator mencatat pertandingan yang selesai (timer 0:00) di 'simabu.riwayat' (js/timeline.js).
+// Saat kembali dari arena, pertandingan baru disimpan bersama nama desain di 'perakit.hasil'.
+const KEY_HASIL = 'perakit.hasil';
+const bacaJson = (k, def) => { try { return JSON.parse(localStorage.getItem(k) || 'null') ?? def; } catch { return def; } };
+const mmss = (v) => (v === null || v === undefined ? '–' : `${Math.floor(v / 60)}:${String(Math.floor(v % 60)).padStart(2, '0')}`);
+let riwayatSebelum = null, robotDiArena = null;
+function renderHasil() {
+  const list = bacaJson(KEY_HASIL, []);
+  const el = $('#hasil-arena');
+  el.hidden = !list.length;
+  if (!list.length) return;
+  const r = list[0];
+  const kelas = r.skor > r.lawan ? 'menang' : r.skor < r.lawan ? 'kalah' : '';
+  el.innerHTML = `<h3>Hasil di arena</h3>
+    <div class="muted kecil">${esc(r.robot || '')} · ${esc(r.kapan || '')}</div>
+    <div class="skor ${kelas}">${r.skor} : ${r.lawan}${r.lawanAda === false ? ' <small class="muted">(tanpa lawan)</small>' : ''}</div>
+    <table><tbody>
+      <tr><td>Sampai Mandate</td><td>${mmss(r.mandate)}</td></tr>
+      <tr><td>Sampai Mustika</td><td>${mmss(r.mustika)}</td></tr>
+      <tr><td>Failure / pelanggaran / retry</td><td>${r.failure ?? 0} / ${r.pelanggaran ?? 0} / ${r.retry ?? 0}</td></tr>
+    </tbody></table>
+    ${list.length > 1 ? `<details><summary>Sebelumnya</summary><table><tbody>${list.slice(1).map((x) => `<tr><td>${esc(x.robot || '')}</td><td>${x.skor} : ${x.lawan}</td></tr>`).join('')}</tbody></table></details>` : ''}`;
+}
+function catatHasil() {
+  const r = bacaJson('simabu.riwayat', [])[0];
+  if (!r || JSON.stringify(r) === riwayatSebelum) return false;
+  const list = [{ ...r, robot: robotDiArena }, ...bacaJson(KEY_HASIL, [])].slice(0, 5);
+  try { localStorage.setItem(KEY_HASIL, JSON.stringify(list)); } catch { /* diblokir */ }
+  return true;
+}
+
 function bukaArena(url, judul) {
   tandai('main');
+  riwayatSebelum = JSON.stringify(bacaJson('simabu.riwayat', [])[0] ?? null);
+  robotDiArena = judul;
   const fr = $('#arena-frame');
   $('#arena-judul').textContent = judul;
   $('#arena').hidden = false;
@@ -518,12 +623,20 @@ function bukaArena(url, judul) {
 function tutupArena() {
   $('#arena').hidden = true;
   $('#arena-frame').src = 'about:blank';
+  if (catatHasil()) {
+    renderHasil();
+    tandai('tanding');
+    const r = bacaJson(KEY_HASIL, [])[0];
+    kabar(`Pertandingan tercatat: ${r.skor} : ${r.lawan}`);
+    $('#hasil-arena').scrollIntoView({ block: 'nearest' });
+  } else kabar('Hasil hanya dicatat bila pertandingan selesai sampai 0:00');
 }
 $('#kembali').addEventListener('click', tutupArena);
 
 // ---------------------------------------------------------------- mulai
 if (matchMedia('(pointer: coarse)').matches) $('.petunjuk').innerHTML = 'Ketuk <b>Pasang</b> pada modul, lalu ketuk bagian robot untuk melihat modulnya.';
 render();
+renderHasil();
 if (masalahAngka) setTimeout(() => kabar(masalahAngka), 600);
 let dilihat = false;
 try { dilihat = !!localStorage.getItem(`${KEY}.dilihat`); } catch { dilihat = true; }
@@ -532,4 +645,4 @@ if (!dilihat) {
   $('#dlg-panduan').showModal();
 }
 // untuk uji otomatis
-window.perakit = { get desain() { return desain; }, hasil: () => hasil, pasangModul, lepas, adegan, MODUL };
+window.perakit = { get desain() { return desain; }, hasil: () => hasil, pasangModul, lepas, adegan, MODUL, daftarModulCsv, urungkan };
