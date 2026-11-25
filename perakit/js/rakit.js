@@ -2,13 +2,11 @@
 // Angka robot kustom memakai bentuk yang sama dengan menu Kustom SimulatorABU (localStorage
 // 'simabu.kustom'), jadi simulator membangun robotnya dengan js/profiles.js -> buatKustom().
 
-import { SLOT, modulById, nilaiParam, beratModul } from './katalog.js';
+import { SLOT, modulById, nilaiParam, beratModul, LAIN_LAIN } from './katalog.js';
 import { buatKustom, ukuran, KUSTOM_BAWAAN } from '../../simulator/js/profiles.js';
 
 // Rule 11.8: berat TR + BR maks. 60 kg (dengan baterai dan kabel)
 export const BATAS_BERAT = 60;
-// Elektronik lain, kabel, baut dan pelat yang tidak dimodelkan sebagai modul
-const LAIN = { BR: 2.2, TR: 1.5 };
 const ACUAN_MASSA = { BR: 25, TR: 15 };
 
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -38,7 +36,7 @@ export function hitung(desain, kind) {
     const list = s.multi ? t[s.id] : t[s.id] ? [t[s.id]] : [];
     for (const x of list) rincian.push({ nama: x.m.nama, kg: beratModul(x.m, kind, x.v, t.penggerak?.m) });
   }
-  rincian.push({ nama: 'Kabel, baut, pelat & elektronik lain', kg: LAIN[kind] });
+  rincian.push({ nama: 'Kabel, baut, pelat & elektronik lain', kg: LAIN_LAIN[kind] });
   const berat = r1(rincian.reduce((a, b) => a + b.kg, 0));
 
   // ---- angka kustom simulator

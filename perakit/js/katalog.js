@@ -4,7 +4,9 @@
 //
 // Bentuk modul:
 //   id, slot, untuk: ['BR','TR'], nama, info,
-//   berat: kg (angka) atau fungsi (nilai parameter, kind) -> kg
+//   berat: kg; rangka: berat668 (kg untuk rangka 668 x 668, diskalakan dengan keliling);
+//   lift BR: beratDasar + beratPerMm x tinggi cup maks; motor: beratPer x jumlah motor penggerak
+//   Semua angka bisa ditimpa angka asli tim lewat perakit/data/angka-modul.json (lihat terapkanAngka).
 //   param: [{ k, label, unit, min, max, step, def: angka | { BR, TR } }]
 //   + data khusus slot (kecepatan motor, warna rangka, dst.)
 
@@ -37,20 +39,18 @@ const UKURAN = [
   { k: 'lebar', label: 'Lebar', unit: 'mm', min: 400, max: 800, step: 2, def: 668 },
   { k: 'panjang', label: 'Panjang', unit: 'mm', min: 400, max: 800, step: 2, def: { BR: 623, TR: 668 } },
 ];
-// berat rangka diskalakan dengan keliling rangka terhadap rangka 668 x 668
-const beratRangka = (kgAcuan) => (v) => +(kgAcuan * (v.lebar + v.panjang) / 1336).toFixed(2);
 
 export const MODUL = [
   // ------------------------------------------------------------ rangka
   { id: 'rangka-hollow', slot: 'rangka', untuk: ['BR', 'TR'], nama: 'Hollow aluminium 20×20',
     info: 'Ringan dan murah. Dipakai R1/R3 dan disarankan di desain 2027.', warna: 0xb9bec6,
-    berat: beratRangka(2.4), param: UKURAN },
+    berat668: 2.4, param: UKURAN },
   { id: 'rangka-vslot', slot: 'rangka', untuk: ['BR', 'TR'], nama: 'Profil V-slot 2020',
     info: 'Mudah dibongkar-pasang dan diatur, tetapi lebih berat.', warna: 0x868c95,
-    berat: beratRangka(3.6), param: UKURAN },
+    berat668: 3.6, param: UKURAN },
   { id: 'rangka-komposit', slot: 'rangka', untuk: ['BR', 'TR'], nama: 'Pelat komposit karbon',
     info: 'Paling ringan dan kaku; mahal dan butuh CNC.', warna: 0x2e3238,
-    berat: beratRangka(1.7), param: UKURAN },
+    berat668: 1.7, param: UKURAN },
 
   // ------------------------------------------------------------ penggerak
   { id: 'mecanum', slot: 'penggerak', untuk: ['BR', 'TR'], nama: 'Mecanum 4 roda',
@@ -85,11 +85,11 @@ export const MODUL = [
   // ------------------------------------------------------------ BR: lift, boom, pengambil, tangga
   { id: 'lift-belt', slot: 'lift', untuk: ['BR'], nama: 'Lift 2 tingkat (belt)',
     info: 'Seperti R1: tiang teleskopik 2 tingkat.', hSpeed: 380,
-    berat: (v) => +(3.2 + v.hMax * 0.0015).toFixed(2),
+    beratDasar: 3.2, beratPerMm: 0.0015,
     param: [{ k: 'hMax', label: 'Tinggi cup maks', unit: 'mm', min: 600, max: 1250, step: 10, def: 960 }] },
   { id: 'lift-cepat', slot: 'lift', untuk: ['BR'], nama: 'Lift 2 tingkat (BLDC cepat)',
     info: 'Hampir 2× lebih cepat naik-turun, lebih berat.', hSpeed: 700,
-    berat: (v) => +(4.2 + v.hMax * 0.0015).toFixed(2),
+    beratDasar: 4.2, beratPerMm: 0.0015,
     param: [{ k: 'hMax', label: 'Tinggi cup maks', unit: 'mm', min: 600, max: 1250, step: 10, def: 960 }] },
   { id: 'boom-pendek', slot: 'boom', untuk: ['BR'], nama: 'Boom pendek',
     info: 'Juluran ke depan untuk menaruh balok tanpa menabrak menara.', eSpeed: 200, berat: 0.9,
@@ -156,7 +156,9 @@ export function nilaiParam(m, kind, isian = {}) {
 export function beratModul(m, kind, isian, pasangan) {
   const v = nilaiParam(m, kind, isian);
   if (m.slot === 'motor') return +(m.beratPer * (pasangan?.nMotor ?? 4)).toFixed(2);
-  return typeof m.berat === 'function' ? m.berat(v, kind) : m.berat;
+  if (m.berat668 !== undefined) return +(m.berat668 * (v.lebar + v.panjang) / 1336).toFixed(2);
+  if (m.beratDasar !== undefined) return +(m.beratDasar + m.beratPerMm * v.hMax).toFixed(2);
+  return m.berat;
 }
 
 // Desain awal ---------------------------------------------------------------------------------
@@ -189,3 +191,28 @@ export const TEMPLAT = {
     TR: { aksesori: [] },
   },
 };
+
+// ---------------------------------------------------------------- angka asli tim
+// perakit/data/angka-modul.json: { modul: { <id>: { <angka>: nilai, diukur: true, catatan: '' } }, lainLain: { BR, TR } }
+// Hanya kunci angka yang sudah ada di modul yang ditimpa, jadi salah ketik tidak merusak Perakit.
+export const ANGKA = ['berat', 'berat668', 'beratDasar', 'beratPerMm', 'beratPer', 'speed', 'acc', 'faktor', 'turun',
+  'hSpeed', 'eSpeed', 'jawSpeed', 'openSpeed'];
+export const LAIN_LAIN = { BR: 2.2, TR: 1.5 };
+export function terapkanAngka(data) {
+  const salah = [];
+  for (const [id, isi] of Object.entries(data?.modul || {})) {
+    const m = modulById(id);
+    if (!m) { if (!id.startsWith('_')) salah.push(id); continue; }
+    for (const k of ANGKA) {
+      const v = Number(isi?.[k]);
+      if (k in m && isi?.[k] !== undefined && isi[k] !== null && Number.isFinite(v) && v >= 0) m[k] = v;
+    }
+    if (isi?.diukur === true) m.diukur = true;
+    if (typeof isi?.catatan === 'string' && isi.catatan.trim()) m.catatan = isi.catatan.trim().slice(0, 140);
+  }
+  for (const k of ['BR', 'TR']) {
+    const v = Number(data?.lainLain?.[k]);
+    if (Number.isFinite(v) && v >= 0) LAIN_LAIN[k] = v;
+  }
+  return salah;
+}

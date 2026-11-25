@@ -1,11 +1,24 @@
 // Perakit Robot Werkudara: antarmuka. Desain disimpan di browser dan bisa dibagikan lewat tautan.
 import { GLTFExporter } from '../vendor/GLTFExporter.js';
-import { SLOT, MODUL, TEMPLAT, modulById, modulUntuk, nilaiParam, beratModul } from './katalog.js';
+import { SLOT, MODUL, TEMPLAT, modulById, modulUntuk, nilaiParam, beratModul, terapkanAngka } from './katalog.js';
 import { hitung, BATAS_BERAT } from './rakit.js';
 import { bangunRobot, buatCangkang } from './bangun.js';
 import { Adegan } from './adegan.js';
 
 const KEY = 'perakit.desain';
+
+// angka asli tim (perakit/data/angka-modul.json) menggantikan perkiraan di katalog.js
+let masalahAngka = null;
+try {
+  const r = await fetch('data/angka-modul.json', { cache: 'no-cache' });
+  if (r.ok) {
+    const salah = terapkanAngka(await r.json());
+    if (salah.length) masalahAngka = `angka-modul.json: modul tidak dikenal ${salah.join(', ')}`;
+  }
+} catch (e) {
+  masalahAngka = 'angka-modul.json tidak bisa dibaca (cek tanda koma/kutip); Perakit memakai angka perkiraan';
+  console.warn(e);
+}
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const kg = (v) => `${(Math.round(v * 10) / 10).toLocaleString('id-ID')} kg`;
@@ -109,7 +122,8 @@ function renderPalet() {
         <span class="nm">${esc(m.nama)}</span>
         ${on ? '<button type="button" data-lepas="1">Lepas</button>' : `<button type="button" data-pasang="1">${!s.multi && isi ? 'Ganti' : 'Pasang'}</button>`}
         <span class="inf">${esc(m.info)}</span>
-        <span class="inf kg">± ${kg(berat)}</span>
+        ${m.catatan ? `<span class="inf">${esc(m.catatan)}</span>` : ''}
+        <span class="baris-bawah"><span class="inf kg">${m.diukur ? '' : '± '}${kg(berat)}</span>${m.diukur ? '<span class="lencana isi" title="Angka hasil ukur tim (data/angka-modul.json)">angka asli</span>' : '<span class="lencana opsi" title="Perkiraan; isi angka asli di data/angka-modul.json">perkiraan</span>'}</span>
       </div>`;
     }).join('');
     return `<section class="grup" data-slot="${s.id}"><h4>${esc(s.nama)} ${lencana}</h4>${kartu}</section>`;
@@ -393,6 +407,7 @@ $('#kembali').addEventListener('click', tutupArena);
 
 // ---------------------------------------------------------------- mulai
 render();
+if (masalahAngka) setTimeout(() => kabar(masalahAngka), 600);
 let dilihat = false;
 try { dilihat = !!localStorage.getItem(`${KEY}.dilihat`); } catch { dilihat = true; }
 if (!dilihat) {

@@ -31,7 +31,16 @@ sama dengan menu *Kustom* simulator dan menyimpannya di `localStorage` (`simabu.
 roda, motor, baterai, aksesori) diekspor ke GLB dan dipakai simulator sebagai *GLB cangkang*. Mekanisme yang bergerak
 (lift, boom, wrist, track, rahang) memakai robot kotak simulator, jadi pratinjau di Perakit sama dengan robot di arena.
 
-Angka berat dan performa di `perakit/js/katalog.js` adalah **perkiraan untuk belajar**. Untuk robot asli, ukur lalu
+### Mengisi angka asli robot
+
+Semua angka modul (berat, kecepatan, percepatan, kecepatan lift/boom/rahang, penurunan baterai) ada di
+**`perakit/data/angka-modul.json`**. Ganti angkanya dengan hasil ukur, set `"diukur": true`, dan isi `catatan`
+(mis. "ditimbang 2026-12-01"). Kartu modul lalu bertanda **angka asli** dan Perakit memakai angka itu. Satuan tiap
+angka tertulis di bagian `_satuan` berkas itu. Hanya angka yang dibaca; nama modul dan nama angka jangan diubah.
+Bila berkasnya rusak (koma/kutip salah), Perakit memberi tahu dan kembali ke perkiraan. Periksa dengan
+`node tests/uji-perakit.cjs` sebelum push.
+
+Tanpa angka asli, angka di Perakit adalah **perkiraan untuk belajar**. Untuk robot asli, ukur lalu
 isi menu Kustom simulator (lihat `KALIBRASI.md` di SimulatorABU). Modul baru ditambahkan di `katalog.js`
 (data) dan `bangun.js` (bentuk 3D).
 
@@ -64,9 +73,18 @@ node tests/uji-perakit.cjs
 ```
 Juga dijalankan GitHub Actions (`.github/workflows/uji.yml`) di setiap push dan pull request.
 
-## Terbit ke GitHub Pages
+## Terbit online (Netlify, repo tetap private)
 
-`.github/workflows/pages.yml` menerbitkan situs setiap ada push ke `main`. Sekali saja: **Settings → Pages → Source:
-GitHub Actions**. Catatan: GitHub Pages untuk repo **private** butuh paket berbayar (GitHub Pro/Team/Enterprise). Pada
-akun gratis, repo harus dibuat public dulu (isi `simulator/` ikut menjadi publik), atau unggah folder ini ke hosting
-statis lain (Netlify, Cloudflare Pages).
+`netlify.toml` sudah disiapkan (situs statis, tanpa build). Sekali saja, oleh pemilik akun:
+
+1. Masuk ke https://app.netlify.com (daftar gratis dengan akun GitHub).
+2. **Add new site → Import an existing project → GitHub**, izinkan Netlify membaca repo `unsrobocon/Website`.
+3. Pilih branch `main`. Build command dan publish directory terisi otomatis dari `netlify.toml`. Tekan **Deploy**.
+4. Opsional: **Site configuration → Change site name** (mis. `werkudara`), alamatnya menjadi
+   `https://werkudara.netlify.app`.
+
+Setelah itu setiap push ke `main` terbit otomatis, dan tiap pull request mendapat pratinjau sendiri. Repo tetap private;
+situsnya sendiri bisa dibuka siapa pun yang tahu alamatnya.
+
+Alternatif: `.github/workflows/pages.yml` menerbitkan ke GitHub Pages, tetapi Pages untuk repo private butuh paket
+berbayar (GitHub Pro/Team), jadi workflow itu hanya berjalan bila dipicu manual.

@@ -1,10 +1,10 @@
-# Menerbitkan website (beranda, perakit, simulator) ke GitHub Pages setiap ada push ke main.
-# Sekali saja: Settings > Pages > Build and deployment > Source: "GitHub Actions".
-name: Terbitkan website
+# Cadangan bila nanti memakai GitHub Pages (situs utama diterbitkan Netlify, lihat README).
+# Pages untuk repo private butuh paket berbayar, jadi workflow ini hanya dijalankan manual
+# (Actions > Terbitkan ke GitHub Pages > Run workflow) setelah Settings > Pages > Source: "GitHub Actions".
+# Untuk terbit otomatis, tambahkan  push: branches: [main]  di bawah on:.
+name: Terbitkan ke GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

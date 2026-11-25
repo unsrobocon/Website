@@ -82,6 +82,23 @@ const cek = (ok, pesan) => { console.log(`${ok ? 'lulus' : 'GAGAL'}  ${pesan}`);
     cek(await p2.evaluate((h) => JSON.stringify(perakit.desain) === h, hash), 'tautan Bagikan memuat desain yang sama');
     await p2.close();
 
+    // angka asli dari data/angka-modul.json menggantikan perkiraan
+    const asli = JSON.parse(fs.readFileSync(path.join(ROOT, 'perakit/data/angka-modul.json'), 'utf8'));
+    cek(Object.keys(asli.modul).length >= 25, 'angka-modul.json berisi semua modul');
+    asli.modul.pg36 = { ...asli.modul.pg36, speed: 1.23, diukur: true, catatan: 'diukur 2026' };
+    const p3 = await browser.newPage();
+    await p3.route('**/perakit/data/angka-modul.json', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify(asli) }));
+    await p3.goto(`${url}/perakit/`);
+    await p3.waitForFunction(() => window.perakit);
+    await p3.evaluate(() => { localStorage.clear(); });
+    await p3.reload();
+    await p3.waitForFunction(() => window.perakit);
+    await p3.keyboard.press('Escape');
+    await p3.click('.tab button.TR');
+    const sp = await p3.evaluate(() => ({ v: perakit.hasil().TR.k.speed, badge: document.querySelector('.kartu[data-id="pg36"]').textContent }));
+    cek(sp.v === 1.23 && sp.badge.includes('angka asli'), `angka asli dipakai (TR ${sp.v} m/s, lencana angka asli)`);
+    await p3.close();
+
     // main di arena: TR diferensial dikemudikan, BR otonom
     await page.click('#main');
     await page.click('#main-ok');
