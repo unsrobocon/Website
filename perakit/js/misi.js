@@ -13,7 +13,7 @@ export const MISI = [
     cek: (c) => c.flag.has('main') },
   { id: 'ramping', judul: 'TR ramping',
     tugas: 'Buat TR yang menjangkau 12 Sky (lebar ≤ 480 mm) tetapi rahangnya masih muat Earth 350 mm.',
-    petunjuk: 'Kantong U yang terlalu sempit membuat rahang tidak bisa terbuka > 350 mm.',
+    petunjuk: 'Bantalan rahang di dalam kantong memakan lebar. Lihat varian CAD TR-B: bantalannya di atas rel.',
     cek: (c) => c.lolos.TR && c.hasil.TR.k.lebar <= 480 },
   { id: 'diet', judul: 'Diet 40 kg',
     tugas: 'Turunkan berat BR + TR sampai ≤ 40 kg dengan semua cek tetap hijau.',

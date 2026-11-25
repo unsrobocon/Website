@@ -129,6 +129,7 @@ export function bacaKustom() {
     if (typeof s[kind]?.cangkang === 'string') out[kind].cangkang = s[kind].cangkang.trim();
     if (PENGGERAK.includes(s[kind]?.drive)) out[kind].drive = s[kind].drive;   // [perakit]
     if (typeof s[kind]?.nama === 'string') out[kind].nama = s[kind].nama.slice(0, 40);
+    if (Number.isFinite(Number(s[kind]?.bantalan)) && s[kind].bantalan !== null && s[kind].bantalan !== '') out[kind].bantalan = Math.min(40, Math.max(0, Number(s[kind].bantalan)));
   }
   return out;
 }
@@ -164,7 +165,7 @@ export function buatKustom(kind, k) {
     wheel: [r3(hw - 0.024), r3(zf - 0.08 * sz), r3(-(zf - 0.08 * sz)), 0.048],
   };
   // rahang terbuka penuh harus muat di dalam kantong U (bantalan setebal 2·padT di tiap sisi)
-  const openMax = Math.min(k.openMax, Math.floor((armIn - TR_G.padT) * 2000));
+  const openMax = Math.min(k.openMax, Math.floor(armIn * 2000 - 2 * (k.bantalan ?? TR_G.padT * 1000)));   // [perakit]
   const P = {
     ...TR_P, drive: k.drive || 'mecanum', speed: k.speed, rot: k.rot, acc: k.acc, baterai: k.baterai,
     open: { ...TR_P.open, max: openMax, start: openMax, min: Math.min(TR_P.open.min, openMax - 20), speed: k.openSpeed },

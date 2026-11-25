@@ -63,6 +63,7 @@ export function hitung(desain, kind) {
     k.jawSpeed = t.liftRahang?.m.jawSpeed ?? KUSTOM_BAWAAN.TR.jawSpeed;
     k.kantong = pj.kantong ?? KUSTOM_BAWAAN.TR.kantong;
     k.openMax = pj.openMax ?? KUSTOM_BAWAAN.TR.openMax;
+    k.bantalan = pj.bantalan ?? 16;
     k.openSpeed = t.penjepit?.m.openSpeed ?? KUSTOM_BAWAAN.TR.openSpeed;
   }
   k.nama = (desain.nama ? `${kind} ${desain.nama}` : `${kind} Perakit`).slice(0, 40);
@@ -86,7 +87,7 @@ export function hitung(desain, kind) {
   } else {
     const buka = profil.P.open.max;
     cek.push({ ok: buka > 360, teks: buka > 360 ? `Rahang terbuka ${buka} mm, muat Earth 350 mm`
-      : `Rahang hanya terbuka ${buka} mm: Earth 350 mm tidak muat (perlebar kantong U atau bukaan)` });
+      : `Rahang hanya terbuka ${buka} mm (kantong ${k.kantong} − 2 × bantalan ${k.bantalan}): Earth 350 mm tidak muat. Perlebar kantong U/bukaan, atau taruh bantalan di atas rel (0 mm)` });
     // hasil tools/jangkauan.cjs SimulatorABU: <= 480 mm menjangkau 12 Sky, 500-668 mm 5 Sky, lebih lebar hampir tidak ada.
     // Jumlah pasti ditulis log arena saat TR otonom dinyalakan.
     const L = k.lebar;

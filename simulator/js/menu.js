@@ -138,7 +138,7 @@ export function showMenu(s) {
   const readKustom = () => {
     const out = {};
     for (const kind of ['BR', 'TR']) {
-      out[kind] = { drive: kustom[kind].drive, nama: kustom[kind].nama, cangkang: form.elements[`${kind}.cangkang`].value.trim() };
+      out[kind] = { drive: kustom[kind].drive, nama: kustom[kind].nama, bantalan: kustom[kind].bantalan, cangkang: form.elements[`${kind}.cangkang`].value.trim() };
       for (const [f, , , lo, hi] of KUSTOM_FIELD[kind]) {
         const v = Number(form.elements[`${kind}.${f}`].value);
         out[kind][f] = Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : kustom[kind][f];

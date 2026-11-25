@@ -120,12 +120,14 @@ export const MODUL = [
     param: [
       { k: 'kantong', label: 'Lebar kantong U', unit: 'mm', min: 300, max: 700, step: 2, def: 444 },
       { k: 'openMax', label: 'Bukaan rahang maks', unit: 'mm', min: 200, max: 680, step: 2, def: 390 },
+      { k: 'bantalan', label: 'Bantalan di dalam kantong (per sisi; 0 = di atas rel)', unit: 'mm', min: 0, max: 40, step: 1, def: 16 },
     ] },
   { id: 'jepit-u-cepat', slot: 'penjepit', untuk: ['TR'], nama: 'Penjepit U (servo cepat)',
     info: 'Membuka-menutup ±1,7× lebih cepat.', openSpeed: 450, berat: 2.6,
     param: [
       { k: 'kantong', label: 'Lebar kantong U', unit: 'mm', min: 300, max: 700, step: 2, def: 444 },
       { k: 'openMax', label: 'Bukaan rahang maks', unit: 'mm', min: 200, max: 680, step: 2, def: 390 },
+      { k: 'bantalan', label: 'Bantalan di dalam kantong (per sisi; 0 = di atas rel)', unit: 'mm', min: 0, max: 40, step: 1, def: 16 },
     ] },
 
   { id: 'jepit-pneumatik', slot: 'penjepit', untuk: ['TR'], nama: 'Penjepit Earth pneumatik (CAD TR-A/B)',
@@ -133,6 +135,7 @@ export const MODUL = [
     param: [
       { k: 'kantong', label: 'Lebar kantong U', unit: 'mm', min: 300, max: 700, step: 2, def: 444 },
       { k: 'openMax', label: 'Bukaan rahang maks', unit: 'mm', min: 200, max: 680, step: 2, def: 390 },
+      { k: 'bantalan', label: 'Bantalan di dalam kantong (per sisi; 0 = di atas rel)', unit: 'mm', min: 0, max: 40, step: 1, def: 27 },
     ] },
 
   // ------------------------------------------------------------ aksesori (boleh banyak)
@@ -196,10 +199,10 @@ export const VARIAN_CAD = {
     aksesori: [pasang('kamera'), pasang('lidar', { tinggi: 80 }), pasang('estop')] } },
   'TR-A': { kind: 'TR', isi: { rangka: pasang('rangka-hollow', { lebar: 668, panjang: 668 }), penggerak: pasang('mecanum'), motor: pasang('pg36'),
     baterai: pasang('lipo-6s'), kontroler: pasang('stm32'), liftRahang: pasang('lift-rahang-belt', { jawMax: 646 }),
-    penjepit: pasang('jepit-pneumatik', { kantong: 444, openMax: 390 }), aksesori: [pasang('menara-sky'), pasang('estop')] } },
+    penjepit: pasang('jepit-pneumatik', { kantong: 444, openMax: 390, bantalan: 27 }), aksesori: [pasang('menara-sky'), pasang('estop')] } },
   'TR-B': { kind: 'TR', isi: { rangka: pasang('rangka-hollow', { lebar: 480, panjang: 668 }), penggerak: pasang('mecanum'), motor: pasang('pg36'),
     baterai: pasang('lipo-6s'), kontroler: pasang('stm32'), liftRahang: pasang('lift-rahang-belt', { jawMax: 646 }),
-    penjepit: pasang('jepit-pneumatik', { kantong: 380, openMax: 360 }), aksesori: [pasang('estop')] } },
+    penjepit: pasang('jepit-pneumatik', { kantong: 380, openMax: 380, bantalan: 0 }), aksesori: [pasang('estop')] } },
 };
 const dariCad = (br, tr, nama) => ({ nama, cad: { BR: br, TR: tr }, BR: VARIAN_CAD[br].isi, TR: VARIAN_CAD[tr].isi });
 
