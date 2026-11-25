@@ -109,8 +109,11 @@ const cek = (ok, pesan) => { console.log(`${ok ? 'lulus' : 'GAGAL'}  ${pesan}`);
     cek(Number.isFinite(x0) && Math.abs(x1 - x0) < 0.01, `TR diferensial tidak bergeser menyamping (x ${x0} -> ${x1})`);
     const zTR = () => fr.evaluate(() => Number(document.querySelector('#telemetry')?.textContent.match(/z (-?[\d.]+)/)?.[1]));
     const z0 = await zTR();
-    await page.keyboard.down('w'); await page.waitForTimeout(1500); await page.keyboard.up('w');
-    const z1 = await zTR();
+    // simulasi maju per bingkai; di CI tanpa GPU bingkainya lambat, jadi tahan W sampai TR bergerak (maks. 10 s)
+    await page.keyboard.down('w');
+    let z1 = z0;
+    for (let i = 0; i < 40 && Math.abs(z1 - z0) <= 0.05; i++) { await page.waitForTimeout(250); z1 = await zTR(); }
+    await page.keyboard.up('w');
     cek(Math.abs(z1 - z0) > 0.05, `TR diferensial tetap bisa maju (z ${z0} -> ${z1})`);
     await page.click('#kembali');
     cek(await page.locator('#arena').isHidden(), 'kembali ke perakit');
