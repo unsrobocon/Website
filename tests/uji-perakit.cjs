@@ -72,8 +72,26 @@ const cek = (ok, pesan) => { console.log(`${ok ? 'lulus' : 'GAGAL'}  ${pesan}`);
     h = await page.evaluate(() => ({ awal: perakit.adegan.ukuranAwal(), merah: document.querySelector('#cek li.bad')?.textContent || '' }));
     cek(h.awal[1] > 700 && h.merah.includes('11.5'), `TR 690 + bumper = lebar ${h.awal[1]} mm ditandai Rule 11.5`);
 
+    // urungkan (Ctrl+Z) melepas bumper lagi
+    cek(!(await page.locator('#urung').isDisabled()), 'tombol Urungkan aktif setelah ada perubahan');
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.keyboard.press('Control+z');
+    await page.waitForTimeout(200);
+    h = await page.evaluate(() => ({ bumper: perakit.desain.TR.aksesori.some((x) => x.id === 'bumper'), lebar: perakit.desain.TR.rangka.v.lebar }));
+    cek(!h.bumper && h.lebar === 690, `Ctrl+Z mengurungkan pemasangan bumper (lebar tetap ${h.lebar} mm)`);
+    await page.click('#urung');
+    await page.waitForTimeout(200);
+    h = await page.evaluate(() => perakit.desain.TR.rangka.v.lebar);
+    cek(h !== 690, `tombol Urungkan mengembalikan lebar rangka (${h} mm)`);
+
+    // daftar modul CSV
+    const csv = await page.evaluate(() => perakit.daftarModulCsv());
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#belanja')]);
+    cek(csv.includes('TOTAL TIM') && csv.includes(';Rangka;') && /^\ufeffRobot;/.test(csv) && dl.suggestedFilename().endsWith('.csv'),
+      `daftar modul CSV diunduh (${dl.suggestedFilename()}, ${csv.split('\r\n').length} baris)`);
+
     // tautan berbagi
-    await page.evaluate(() => { perakit.lepas('aksesori', perakit.desain.TR.aksesori.findIndex((x) => x.id === 'bumper')); perakit.pasangModul('diferensial'); });
+    await page.evaluate(() => { const i = perakit.desain.TR.aksesori.findIndex((x) => x.id === 'bumper'); if (i >= 0) perakit.lepas('aksesori', i); perakit.pasangModul('diferensial'); });
     const hash = await page.evaluate(() => { document.querySelector('#nama').value = 'Uji'; document.querySelector('#nama').dispatchEvent(new Event('input')); return JSON.stringify(perakit.desain); });
     const enc = Buffer.from(hash).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const p2 = await browser.newPage();
@@ -156,8 +174,12 @@ const cek = (ok, pesan) => { console.log(`${ok ? 'lulus' : 'GAGAL'}  ${pesan}`);
     for (let i = 0; i < 40 && Math.abs(z1 - z0) <= 0.05; i++) { await page.waitForTimeout(250); z1 = await zTR(); }
     await page.keyboard.up('w');
     cek(Math.abs(z1 - z0) > 0.05, `TR diferensial tetap bisa maju (z ${z0} -> ${z1})`);
+    // pertandingan selesai: simulator menulis simabu.riwayat (di sini dibuat tiruannya)
+    await page.evaluate(() => localStorage.setItem('simabu.riwayat', JSON.stringify([{ kapan: '2027-01-01 10:00', skor: 120, lawan: 80, mandate: 95.2, mustika: null, failure: 1, pelanggaran: 0, retry: 2, team: 'red' }])));
     await page.click('#kembali');
     cek(await page.locator('#arena').isHidden(), 'kembali ke perakit');
+    const ha = await page.evaluate(() => ({ tampil: !document.querySelector('#hasil-arena').hidden, teks: document.querySelector('#hasil-arena').textContent.replace(/\s+/g, ' ') }));
+    cek(ha.tampil && ha.teks.includes('120 : 80') && ha.teks.includes('1:35') && ha.teks.includes('Uji'), `hasil pertandingan tampil di perakit (${ha.teks.slice(0, 80)})`);
   } catch (e) {
     cek(false, `uji berhenti: ${e.message.split('\n')[0]}`);
   }

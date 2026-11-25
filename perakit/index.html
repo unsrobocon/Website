@@ -19,6 +19,7 @@
       <select id="templat" aria-label="Mulai dari templat">
         <option value="">Mulai dari…</option>
       </select>
+      <button id="urung" type="button" title="Urungkan perubahan terakhir (Ctrl+Z)" disabled>↶ Urungkan</button>
       <button id="bagikan" type="button" title="Salin tautan desain ini">Bagikan</button>
       <button id="unduh" type="button" title="Unduh desain (JSON)">Simpan</button>
       <label class="tombol" title="Buka desain (JSON)">Buka<input id="buka" type="file" accept=".json,application/json" hidden /></label>
@@ -61,6 +62,8 @@
       <table id="spes"></table>
       <h3>Berat tim <small>(Rule 11.8: maks. 60 kg berdua)</small></h3>
       <div id="berat"></div>
+      <button id="belanja" type="button" class="kecil-btn" title="Unduh daftar modul BR dan TR sebagai CSV (bisa dibuka di Excel/Sheets)">Unduh daftar modul (CSV)</button>
+      <div id="hasil-arena" hidden></div>
       <button id="main" type="button" class="utama">▶ Mainkan di arena 2027</button>
       <p class="muted kecil">Angka berat dan performa adalah perkiraan untuk belajar. Robot asli: ukur lalu isi menu Kustom di simulator.</p>
     </aside>
