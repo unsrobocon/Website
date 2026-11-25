@@ -47,7 +47,7 @@ export class Hud {
       : [[k('Space'), 'jepit / lepas'], [k('←', '→'), 'rahang buka / tutup'], [k('1') + '–' + k('6'), 'preset (2 Earth, 3 atas, 4 Mustika)']];
     const sys = pad
       ? [[k('Share'), 'ganti robot'], [k('△'), 'kamera'], [k('Options'), 'timer'], [k('Touchpad'), 'retry'], [k('□') + '+' + k('Options'), 'retry (stik Xbox: X + Start)']]
-      : [[k('Tab'), 'ganti robot'], [k('C'), 'kamera'], [k('Enter'), 'timer'], [k('⌫'), 'retry'], [k('O', 'I'), 'BR / TR otonom ON / OFF'], [k('L'), 'catatan waktu'], [k('V'), 'tampilan sensor BR'], [k('N'), 'suara / bisu'], [k('H'), 'bantuan lengkap']];
+      : [[k('Tab'), 'ganti robot'], [k('C'), 'kamera'], [k('Enter'), 'timer'], [k('⌫'), 'retry'], [k('O', 'I'), 'BR / TR otonom ON / OFF'], [k('L'), 'catatan waktu'], [k('V'), 'tampilan sensor BR'], [k('Y'), 'nama area'], [k('N'), 'suara / bisu'], [k('H'), 'bantuan lengkap']];
     const rows = (list, cls = '') => list.map(([a, b]) => `<span class="k ${cls}">${a}</span><span class="${cls}">${b}</span>`).join('');
     $('keys').innerHTML = `<h4>KONTROL <b>${this.activeLabel || (kind === 'BR' ? 'BR R1' : 'TR R3')}</b> · ${pad ? '🎮 stik PS4' : '⌨ keyboard'}</h4>
       <div class="grid">${rows(kind === 'BR' ? br : tr)}<div class="sep"></div>${rows(common)}<div class="sep opt"></div>${rows(sys, 'opt')}</div>`;

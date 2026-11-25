@@ -22,6 +22,7 @@ const KEY_ACTIONS = {
   KeyN: 'mute',
   KeyJ: 'pengarah',
   KeyX: 'rotate90',
+  KeyY: 'label',
   Escape: 'menu',
   Digit1: 'preset1', Digit2: 'preset2', Digit3: 'preset3', Digit4: 'preset4', Digit5: 'preset5', Digit6: 'preset6',
 };

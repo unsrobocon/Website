@@ -11,7 +11,9 @@ DST="$(cd "$(dirname "$0")/.." && pwd)/simulator"
 [ -f "$SRC/js/profiles.js" ] || { echo "Bukan folder SimulatorABU: $SRC" >&2; exit 1; }
 rm -rf "$DST"
 mkdir -p "$DST"
-for p in index.html panduan.html papan.html css js assets vendor; do cp -r "$SRC/$p" "$DST/"; done
+cp "$SRC"/*.html "$DST/"
+[ -f "$SRC/versi.json" ] && cp "$SRC/versi.json" "$DST/"
+for p in css js assets vendor; do cp -r "$SRC/$p" "$DST/"; done
 REV="$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo '?')"
 echo "$REV" > "$DST/VERSI-SIMULATOR.txt"
 node "$(dirname "$0")/tambal-simulator.cjs" "$DST"

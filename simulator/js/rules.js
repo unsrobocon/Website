@@ -370,6 +370,12 @@ export class Rules {
   // Blok yang sedang ditaruh (menyentuh menara saat itu) menjadi invalid.
   onBump({ robot, objs, byHeld }) {
     if (this.final) return;
+    // 6.6.3: menabrak Mustika yang sudah diabadikan = Forced Retry; Mustika tetap di Central Pillar
+    // (wasit mengembalikannya; di simulator Mustika itu memang tidak ikut bergeser)
+    if (this.enshrined && objs.includes(this.enshrined)) {
+      this.violation(`mustika-${robot.kind}`, `${robot.kind} menabrak Mustika yang sudah diabadikan (6.6.3) — Mustika dikembalikan wasit`, robot);
+      return;
+    }
     const t = this.towers.find((tw) => objs.some((o) => o === tw.bottom || o === tw.middle || o === tw.top));
     if (!t) return;
     const msg = `${robot.kind} menabrak menara ${t.spot.id} (6.6) — menara dipulihkan wasit`;

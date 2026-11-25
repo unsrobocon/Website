@@ -3,6 +3,7 @@
 //  - robot kustom menyimpan jenis penggerak (mecanum / omni / diferensial) dan nama robot
 //  - penggerak diferensial tidak bisa bergeser menyamping
 //  - menu simulator tidak menghapus jenis penggerak & nama saat pengaturan disimpan
+//  - tebal bantalan rahang TR di dalam kantong U bisa diatur (bawaan 16 mm, CAD TR-B 0 mm)
 // Setiap tambalan mencari teks persis di kode SimulatorABU. Bila teksnya tidak ditemukan (kode asli
 // sudah berubah), skrip berhenti dengan pesan supaya tambalannya diperbarui, bukan diam-diam terlewat.
 const fs = require('fs');
@@ -33,6 +34,14 @@ const TAMBALAN = [
   { file: 'js/profiles.js',
     from: "return { label: 'TR Kustom', deskripsi: 'ukuran dari menu',",
     to: "return { label: k.nama || 'TR Kustom', deskripsi: k.nama ? 'dari Perakit' : 'ukuran dari menu'," },
+  { file: 'js/profiles.js',
+    from: "    if (typeof s[kind]?.nama === 'string') out[kind].nama = s[kind].nama.slice(0, 40);\n",
+    to: "    if (typeof s[kind]?.nama === 'string') out[kind].nama = s[kind].nama.slice(0, 40);\n"
+      + "    if (Number.isFinite(Number(s[kind]?.bantalan)) && s[kind].bantalan !== null && s[kind].bantalan !== '') out[kind].bantalan = Math.min(40, Math.max(0, Number(s[kind].bantalan)));\n" },
+  // tebal bantalan rahang di dalam kantong U (mm per sisi); 0 = bantalan di atas rel (CAD TR-B)
+  { file: 'js/profiles.js',
+    from: "const openMax = Math.min(k.openMax, Math.floor((armIn - TR_G.padT) * 2000));",
+    to: "const openMax = Math.min(k.openMax, Math.floor(armIn * 2000 - 2 * (k.bantalan ?? TR_G.padT * 1000)));   // [perakit]" },
   { file: 'js/robots.js',
     from: "  canStrafe() { return true; }",
     to: "  canStrafe() { return this.P.drive !== 'diferensial'; }" },
@@ -41,7 +50,7 @@ const TAMBALAN = [
     to: "  canStrafe() { return this.track < 0.05 && this.P.drive !== 'diferensial'; }" },
   { file: 'js/menu.js',
     from: "out[kind] = { cangkang: form.elements[`${kind}.cangkang`].value.trim() };",
-    to: "out[kind] = { drive: kustom[kind].drive, nama: kustom[kind].nama, cangkang: form.elements[`${kind}.cangkang`].value.trim() };" },
+    to: "out[kind] = { drive: kustom[kind].drive, nama: kustom[kind].nama, bantalan: kustom[kind].bantalan, cangkang: form.elements[`${kind}.cangkang`].value.trim() };" },
 ];
 
 let gagal = 0;

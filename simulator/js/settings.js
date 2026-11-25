@@ -18,7 +18,7 @@ export const PILIHAN = {
   lawan: { label: 'Tim lawan', opsi: { 0: 'Tidak ada', santai: 'Otonom — santai', penuh: 'Otonom — penuh', agresif: 'Otonom — agresif (balik Sky kita lebih dulu)', manusia: '2 pemain — stik mengemudikan TR lawan' } },
   sensor: { label: 'Sensor BR otonom', opsi: { sempurna: 'Sempurna (posisi pasti)', realistis: 'Realistis (kamera: galat & jangkauan)' } },
   fisika: { label: 'Fisika benda', opsi: { normal: 'Normal (Earth tetap di tempat)', licin: 'Licin (Earth tunggal di lantai bisa terdorong)' } },
-  tantangan: { label: 'Latihan TR', opsi: { 0: 'Tidak', earth: 'Antar 2 tumpukan Earth', sky: 'Antar 2 Sky', mustika: 'Mustika ke BR (Mandate dianggap sudah)' } },
+  tantangan: { label: 'Latihan TR / BR', opsi: { 0: 'Tidak', earth: 'Antar 2 tumpukan Earth', sky: 'Antar 2 Sky', mustika: 'Mustika ke BR (Mandate dianggap sudah)', brmenara: 'BR manual: susun 1 menara lengkap', brnaik: 'BR manual: naik ke L2' } },
   forced: { label: 'Forced Retry', opsi: { otomatis: 'Otomatis (wasit memindahkan robot)', peringatan: 'Peringatan saja' } },
   retry: { label: 'Waktu Retry', opsi: { 0: 'Instan', 5: '5 detik', 10: '10 detik' } },
   grafis: { label: 'Grafis', opsi: { normal: 'Normal (bayangan halus)', ringan: 'Ringan (laptop lemah)' } },
@@ -36,7 +36,7 @@ function saved() {
 export function readSettings() {
   const q = new URLSearchParams(location.search);
   const known = [...Object.keys(PILIHAN), ...Object.keys(ROBOT)].some((k) => q.has(k));
-  const started = q.get('menu') === '0' || q.has('mulai') || known;
+  const started = q.get('menu') === '0' || q.has('mulai') || q.has('tutorial') || q.has('demo') || known;
   const s = started ? { ...BAWAAN_URL } : { ...BAWAAN_MENU, ...saved() };
   for (const k of Object.keys(PILIHAN)) {
     let v = q.get(k);

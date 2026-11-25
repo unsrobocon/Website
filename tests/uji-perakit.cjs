@@ -82,6 +82,30 @@ const cek = (ok, pesan) => { console.log(`${ok ? 'lulus' : 'GAGAL'}  ${pesan}`);
     cek(await p2.evaluate((h) => JSON.stringify(perakit.desain) === h, hash), 'tautan Bagikan memuat desain yang sama');
     await p2.close();
 
+    // varian CAD: templat, model CAD berdampingan, misi
+    const p4 = await browser.newPage({ viewport: { width: 1366, height: 860 } });
+    p4.on('pageerror', (e) => errs.push(e.message));
+    await p4.goto(`${url}/perakit/`);
+    await p4.waitForFunction(() => window.perakit);
+    await p4.keyboard.press('Escape');
+    await p4.selectOption('#templat', 'cad-a-a');
+    const ca = await p4.evaluate(() => ({ cad: perakit.desain.cad, br: perakit.hasil().BR.cek.filter((c) => !c.ok && !c.saran).length, tr: perakit.hasil().TR.cek.filter((c) => !c.ok && !c.saran).length }));
+    cek(ca.cad.BR === 'BR-A' && ca.cad.TR === 'TR-A' && ca.br === 0 && ca.tr === 0, 'templat CAD BR-A + TR-A lolos cek');
+    await p4.check('#cad-tampil');
+    await p4.waitForFunction(() => perakit.adegan.cad?.visible, null, { timeout: 30000 });
+    const ukCad = await p4.evaluate(async () => { const THREE = await import('three'); const s = new THREE.Box3().setFromObject(perakit.adegan.cad).getSize(new THREE.Vector3()); return [s.z, s.x, s.y].map((v) => Math.round(v * 1000)); });
+    cek(Math.abs(ukCad[0] - 671) < 3 && Math.abs(ukCad[1] - 668) < 3, `model CAD BR-A tampil menghadap depan (${ukCad.join('×')} mm)`);
+    await p4.click('.tab button.TR');
+    await p4.selectOption('#cad-varian', 'TR-B');
+    const trb = await p4.evaluate(() => ({ cad: perakit.desain.cad.TR, lebar: perakit.hasil().TR.k.lebar, buka: perakit.hasil().TR.profil.P.open.max, gagal: perakit.hasil().TR.cek.filter((c) => !c.ok && !c.saran).map((c) => c.teks) }));
+    cek(trb.cad === 'TR-B' && trb.lebar === 480, 'varian TR-B mengganti modul TR saja');
+    cek(trb.buka === 380 && trb.gagal.length === 0, `TR-B: bantalan di atas rel, rahang terbuka ${trb.buka} mm, muat Earth (${trb.gagal.join('; ')})`);
+    await p4.click('#misi-btn');
+    await p4.waitForTimeout(500);
+    const ms = await p4.evaluate(() => ({ beres: document.querySelectorAll('#misi-list li.beres').length, teks: document.querySelector('#misi-jumlah').textContent }));
+    cek(ms.beres >= 2, `misi tercentang otomatis (${ms.teks})`);
+    await p4.close();
+
     // angka asli dari data/angka-modul.json menggantikan perkiraan
     const asli = JSON.parse(fs.readFileSync(path.join(ROOT, 'perakit/data/angka-modul.json'), 'utf8'));
     cek(Object.keys(asli.modul).length >= 25, 'angka-modul.json berisi semua modul');

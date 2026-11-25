@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kuis Aturan — Simulator Werkudara</title>
+<style>
+  :root { --bg: #161b22; --panel: #1f252d; --line: #2f3742; --fg: #e6edf3; --muted: #9aa6b2; --ok: #3fb97f; --bad: #f87171; --acc: #ffd400; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 18px; }
+  .bar { height: 6px; background: var(--panel); border-radius: 3px; overflow: hidden; margin: 10px 0 18px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .2s; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .no { color: var(--muted); font-size: 13px; }
+  h2 { font-size: 18px; margin: 4px 0 14px; }
+  .opsi { display: grid; gap: 8px; }
+  .opsi button { text-align: left; background: #161b22; color: var(--fg); border: 1px solid #46505c; border-radius: 8px; padding: 10px 12px; font: inherit; cursor: pointer; }
+  .opsi button:hover:not(:disabled) { border-color: var(--acc); }
+  .opsi button.benar { border-color: var(--ok); background: #173326; }
+  .opsi button.salah { border-color: var(--bad); background: #3a1c1c; }
+  .opsi button:disabled { cursor: default; }
+  .jelas { margin-top: 14px; padding: 10px 12px; border-left: 3px solid var(--acc); background: #161b22; border-radius: 0 8px 8px 0; display: none; }
+  .jelas.show { display: block; }
+  .jelas b.ok { color: var(--ok); } .jelas b.no { color: var(--bad); }
+  .aksi { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .aksi button, .aksi a { background: var(--acc); color: #111; border: 0; border-radius: 8px; padding: 8px 16px; font: 600 15px system-ui, sans-serif; cursor: pointer; text-decoration: none; }
+  .aksi .lain { background: #2a313a; color: var(--fg); }
+  .hasil h2 { font-size: 26px; }
+  .hasil ul { padding-left: 18px; }
+  .hasil li { margin: 6px 0; }
+  .muted { color: var(--muted); }
+  a { color: #7cc4ff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kuis Aturan ABU Robocon 2027</h1>
+  <p class="sub">15 soal singkat dari Rulebook V1.1 (nomor pasal di tiap penjelasan). Urutan soal diacak. Cocok dikerjakan setelah <a href="panduan.html">Panduan cepat</a> dan Tutorial di simulator.</p>
+  <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+  <div id="kuis" class="card" aria-live="polite"></div>
+</main>
+<script>
+// Tiap soal: tanya, opsi, indeks jawaban benar, penjelasan (dengan pasal)
+const SOAL = [
+  { q: 'Berapa lama satu pertandingan berlangsung?', o: ['2 menit', '3 menit', '5 menit', '10 menit'], a: 1,
+    j: '3 menit (timer 3:00). Sebelumnya ada waktu setup 1 menit (4.1.1).' },
+  { q: 'Robot mana yang wajib berjalan otomatis penuh?', o: ['TR (Transporter)', 'BR (Builder)', 'Keduanya', 'Tidak ada, keduanya boleh manual'], a: 1,
+    j: 'BR wajib otomatis penuh (11.3). TR boleh manual atau otomatis (11.2).' },
+  { q: 'Berapa poin untuk setiap blok yang diantar TR ke Transfer Area?', o: ['+5, sekali per blok', '+10', '+5 setiap kali ditaruh', '+20'], a: 0,
+    j: 'Transfer bernilai +5 dan hanya dihitung sekali per blok (8.1). Menaruh ulang blok yang sama tidak menambah poin.' },
+  { q: 'Susunan menara yang benar dari bawah ke atas adalah…', o: ['Sky, Earth, Earth', 'Earth, Sky, Earth', 'Earth, Earth, Sky', 'Bebas, asal tiga blok'], a: 2,
+    j: 'Dua Earth Block lalu Sky Block di puncak. Earth di urutan yang salah menjadi Failure; Sky di atas satu Earth saja atau langsung di spot menjadi invalid (5.1.4, 6.3).' },
+  { q: 'Poin menara di Level 1 untuk Earth bawah / Earth tengah / Sky adalah…', o: ['5 / 10 / 20', '10 / 20 / 40', '20 / 40 / 80', '10 / 10 / 10'], a: 1,
+    j: 'Di L1: 10 / 20 / 40. Di L2 dua kali lipat: 20 / 40 / 80 (8.2).' },
+  { q: 'Apa yang menentukan tim pemilik poin Sky Block di puncak menara?', o: ['Tim yang menaruhnya', 'Warna belahan yang menghadap ke atas', 'Warna menara di bawahnya', 'Tim yang pertama menyentuhnya'], a: 1,
+    j: 'Sky harus rata dan satu warna menghadap atas; warna itu pemilik poinnya. Sky di menara boleh dibalik, dan skor berubah saat flip selesai (3.5.6–3.5.8).' },
+  { q: 'Syarat Sanctuary Mandate adalah…', o: ['Satu menara lengkap di L2', 'Dua menara lengkap warna tim pada saat yang sama, minimal satu di area Shared', 'Lima Earth di Building Spot', 'Mustika diambil dari pilar'], a: 1,
+    j: 'Dua menara lengkap warna tim sekaligus, minimal satu di Shared (3.6.1). Sekali tercapai, Mandate bersifat permanen (3.6.2).' },
+  { q: 'Kapan TR boleh mengambil Mustika?', o: ['Kapan saja', 'Setelah 1 menit', 'Setelah Sanctuary Mandate', 'Hanya di 30 detik terakhir'], a: 2,
+    j: 'Mustika hanya boleh diambil setelah Mandate (3.6.7). Di simulator Mustika yang diambil lebih awal menjadi tidak sah + Forced Retry.' },
+  { q: 'Berapa poin Mustika yang diabadikan di Central Pillar?', o: ['+80', '+100', '+250', 'Langsung menang'], a: 2,
+    j: '+250 (8.5). Hanya Mustika pertama yang sah; setelah satu tim mengabadikan Mustika, Mustika lain dikeluarkan (3.6.8).' },
+  { q: 'Berapa blok yang boleh dibawa sekaligus oleh TR dan BR?', o: ['TR 2, BR 3', 'TR 3, BR 2', 'Keduanya 2', 'Tidak dibatasi'], a: 1,
+    j: 'TR maks 3 blok, BR maks 2 blok (6.4). Blok di atas batas, atau blok yang dibawa bersama Mustika, menjadi invalid.' },
+  { q: 'Robot tim kita menabrak menara sampai bloknya bergeser. Akibatnya?', o: ['Tidak apa-apa bila tidak sengaja', 'Forced Retry, dan menara dipulihkan wasit', 'Tim lawan langsung menang', 'Hanya peringatan lisan'], a: 1,
+    j: 'Menara roboh atau balok tergeser = Forced Retry, apa pun niatnya; wasit memulihkan menara (6.6.1–6.6.2).' },
+  { q: 'Boleh tidak tim lawan memindahkan Earth kita yang sudah benar di Building Spot?', o: ['Boleh', 'Tidak boleh, pelanggaran = Forced Retry', 'Boleh bila di area Shared', 'Boleh setelah Mandate'], a: 1,
+    j: 'Earth yang sudah benar tidak boleh dipindah lawan (3.5.5); pelanggarannya Forced Retry dan menara dikembalikan (6.6.1).' },
+  { q: 'Saat buzzer berbunyi, blok yang masih dipegang atau disentuh robot…', o: ['Tetap dihitung', 'Tidak dihitung', 'Dihitung setengah', 'Dihitung untuk lawan'], a: 1,
+    j: 'Benda yang masih disentuh, dijepit, atau ditopang robot saat buzzer tidak dihitung (4.6.3, 8.6.1).' },
+  { q: 'Bila skor sama, faktor pertama penentu pemenang adalah…', o: ['Jumlah blok di L1', 'Mustika yang diabadikan', 'Jumlah Retry paling sedikit', 'Lempar koin'], a: 1,
+    j: 'Urutan tie-break 9.3: Mustika → jumlah Sky warna tim → blok di L2 → blok di L1 → keputusan juri.' },
+  { q: 'Ukuran maksimum robot saat start (sebelum terjulur) adalah…', o: ['500 × 500 × 500 mm', '700 × 700 × 700 mm', '1000 × 1000 × 1200 mm', '1400 × 1000 × 1200 mm'], a: 1,
+    j: 'Awal 700 × 700 × 700 mm (11.5). Saat terjulur maks 1400 × 1000 × 1200 mm (11.6–11.7). Total berat kedua robot maks 60 kg (11.8).' },
+  { q: 'Earth yang masih dipegang lalu menyentuh lantai di luar Storage, Transfer Area, atau Building Spot menjadi…', o: ['Tetap sah', 'Failure', 'Bonus +5', 'Milik lawan'], a: 1,
+    j: 'Earth yang menyentuh lantai di tempat terlarang menjadi Failure, walau masih dipegang (5.1.4).' },
+];
+const N = 15;
+const acak = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let daftar, i, benar, salah;
+const el = document.getElementById('kuis'), bar = document.getElementById('bar');
+
+function mulai() {
+  daftar = acak(SOAL).slice(0, N).map((s) => {
+    const urut = acak(s.o.map((t, k) => ({ t, k })));
+    return { ...s, urut, a: urut.findIndex((x) => x.k === s.a) };
+  });
+  i = 0; benar = 0; salah = [];
+  tampil();
+}
+
+function tampil() {
+  bar.style.width = `${(i / daftar.length) * 100}%`;
+  if (i >= daftar.length) return akhir();
+  const s = daftar[i];
+  el.innerHTML = `<div class="no">Soal ${i + 1} dari ${daftar.length} · benar ${benar}</div><h2>${esc(s.q)}</h2>
+    <div class="opsi">${s.urut.map((x, k) => `<button type="button" data-k="${k}">${esc(x.t)}</button>`).join('')}</div>
+    <div class="jelas" id="jelas"></div><div class="aksi" id="aksi"></div>`;
+  for (const b of el.querySelectorAll('.opsi button')) b.addEventListener('click', () => jawab(Number(b.dataset.k)));
+  el.querySelector('.opsi button').focus();
+}
+
+function jawab(k) {
+  const s = daftar[i], ok = k === s.a;
+  if (ok) benar++; else salah.push(s);
+  el.querySelectorAll('.opsi button').forEach((b, n) => { b.disabled = true; if (n === s.a) b.classList.add('benar'); else if (n === k) b.classList.add('salah'); });
+  const j = el.querySelector('#jelas');
+  j.innerHTML = `<b class="${ok ? 'ok' : 'no'}">${ok ? 'Benar!' : 'Belum tepat.'}</b> ${esc(s.j)}`;
+  j.classList.add('show');
+  const a = el.querySelector('#aksi');
+  a.innerHTML = `<button type="button" id="lanjut">${i + 1 < daftar.length ? 'Soal berikutnya' : 'Lihat hasil'}</button>`;
+  const btn = a.querySelector('#lanjut');
+  btn.addEventListener('click', () => { i++; tampil(); });
+  btn.focus();
+}
+
+function akhir() {
+  const n = daftar.length, pct = Math.round((benar / n) * 100);
+  const pesan = pct === 100 ? 'Sempurna! Siap jadi wasit latihan.' : pct >= 80 ? 'Bagus sekali. Baca lagi pasal yang terlewat di bawah.' : pct >= 50 ? 'Lumayan. Ulangi setelah membaca Panduan cepat.' : 'Ayo baca Panduan cepat dan coba Tutorial di simulator dulu.';
+  try {
+    const KEY = 'simabu.kuis', h = JSON.parse(localStorage.getItem(KEY) || '[]');
+    h.unshift({ benar, n, kapan: new Date().toISOString().slice(0, 16).replace('T', ' ') });
+    localStorage.setItem(KEY, JSON.stringify(h.slice(0, 10)));
+  } catch { /* penyimpanan diblokir */ }
+  el.innerHTML = `<div class="hasil"><h2>${benar} / ${n} benar (${pct} %)</h2><p>${pesan}</p>
+    ${salah.length ? `<p class="muted">Yang perlu dibaca lagi:</p><ul>${salah.map((s) => `<li><b>${esc(s.q)}</b><br><span class="muted">${esc(s.j)}</span></li>`).join('')}</ul>` : ''}
+    <div class="aksi"><button type="button" id="ulang">Ulangi kuis</button><a class="lain" href="./">Ke simulator</a><a class="lain" href="panduan.html">Panduan cepat</a></div></div>`;
+  el.querySelector('#ulang').addEventListener('click', mulai);
+}
+window.__kuis = { SOAL, jawab: (k) => jawab(k), get soal() { return daftar[i]; } };   // uji otomatis
+mulai();
+</script>
+</body>
+</html>

@@ -14,7 +14,11 @@ import { Timeline } from './timeline.js';
 import { AutoTransporter } from './autotr.js';
 import { readSettings, menuUrl } from './settings.js';
 import { Rekaman } from './rekam.js';
-import { Latihan } from './latihan.js';
+import { Latihan, TANTANGAN, siapkanLatihanBR } from './latihan.js';
+import { Tutorial } from './tutorial.js';
+import { HasilAkhir } from './hasil.js';
+import { LabelArea } from './label.js';
+import { Demo } from './demo.js';
 import { Jembatan } from './jembatan.js';
 import { Lidar, Imu, Odom, LIDAR_BURUK } from './lidar.js';
 import { buatPeta } from './peta.js';
@@ -54,6 +58,15 @@ const STRATEGI_KEY = QS.get('rencana') ? `rencana:${QS.get('rencana')}` : S.stra
 const canvas = document.getElementById('view');
 // grafis 'ringan' untuk laptop lemah: tanpa antialias, resolusi 1×, bayangan kecil dan tajam
 const RINGAN = S.grafis === 'ringan';
+// browser / laptop tanpa WebGL: beri tahu dengan jelas, jangan tertahan di "Memuat…"
+{
+  const uji = document.createElement('canvas');
+  if (!(uji.getContext('webgl2') || uji.getContext('webgl'))) {
+    document.getElementById('loading-msg').textContent = 'Browser ini tidak mendukung WebGL, jadi tampilan 3D tidak bisa dibuat. Pakai Chrome, Edge atau Firefox versi baru, dan nyalakan akselerasi perangkat keras (hardware acceleration) di pengaturan browser.';
+    document.getElementById('loading').classList.add('error');
+    throw new Error('WebGL tidak tersedia');
+  }
+}
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !RINGAN });
 renderer.setPixelRatio(RINGAN ? 1 : Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
@@ -173,16 +186,44 @@ const jembatanOf = {
 };
 const jembatan = jembatanOf.br || jembatanOf.tr;
 // latihan operator TR (js/latihan.js): tantangan berwaktu, BR otonom ikut bekerja
-const latihan = S.tantangan !== '0' ? new Latihan(S.tantangan, { rules, events, tr, onUlang: () => { resetField(); mulaiLatihan(); } }) : null;
+const latihan = S.tantangan !== '0' ? new Latihan(S.tantangan, { rules, events, tr, br, onUlang: () => { resetField(); mulaiLatihan(); } }) : null;
 function mulaiLatihan() {
   if (!latihan) return;
   latihan.reset();
+  if (TANTANGAN[S.tantangan]?.robot === 'BR') {
+    // latihan BR manual: autopilot BR mati, operator mengemudikan BR
+    if (auto.enabled) handleEdge({ action: 'auto' });
+    if (autoTR.enabled) handleEdge({ action: 'autoTR' });
+    siapkanLatihanBR(S.tantangan, { br, objects });
+    if (active !== br) handleEdge({ action: 'switch' });
+    if (camMode === 'ikuti') snapCamera();
+    return;
+  }
   if (!auto.enabled) handleEdge({ action: 'auto' });
   if (active !== tr) handleEdge({ action: 'switch' });
   if (S.tantangan === 'mustika') { rules.st[TEAM].mandate = true; rules.st[TEAM].mandateTime = 'latihan'; }
 }
+// tutorial anggota baru (?tutorial=1, js/tutorial.js)
+const tutorial = QS.get('tutorial') === '1'
+  ? new Tutorial({ team: TEAM, events, scene, get: () => ({ active, tr, br, auto }), onUlang: () => resetField() }) : null;
+// nama area di lapangan 3D (tombol Y, js/label.js); menyala sendiri di tutorial dan demo
+const label = new LabelArea(scene);
+// kamera boleh menyorot robot lain selain robot aktif (demo berpemandu)
+let fokus = null;
+const sorotan = () => fokus || active;
+// demo berpemandu (?demo=1, js/demo.js): 4 robot otonom, keterangan kejadian, kamera otomatis, berulang
+const demo = QS.get('demo') === '1' ? new Demo({
+  events, rules, robots: ctx.robots, label,
+  kamera: { fokus: (r) => { fokus = r; if (camMode === 'ikuti') snapCamera(); }, mode: (m) => setCamMode(m), namaMode: () => camMode },
+  ulang: () => resetField(),
+}) : null;
 const timeline = new Timeline(events, rules, { team: TEAM, pengaturan: `${TEAM === 'red' ? 'Merah' : 'Biru'} · ${LAYOUT} · ${STRATEGI_KEY}${LAWAN ? ' · lawan ' + LAWAN : ''}` });
 timeline.analisisFn = () => waktuTerbuang(rekam.frames, ctx.robots, TEAM);
+// layar hasil akhir saat buzzer (js/hasil.js); tamu arena melihat hasil di laptop tuan rumah
+const hasil = ARENA === 'tamu' ? null : new HasilAkhir({
+  events, rules, timeline, team: TEAM, adaLawan: !!foes,
+  aksi: { ulang: () => { resetField(); mulaiLatihan(); }, putar: () => openReplay(), catatan: () => timeline.toggle(true), menu: () => { location.href = menuUrl(); } },
+});
 
 let active = br;
 let camMode = 'ikuti';
@@ -239,7 +280,9 @@ async function init() {
     for (const r of ctx.robots) r.addTeamMarker();
   } catch (err) {
     console.error(err);
-    hud.loading(`Gagal memuat model GLB (${err.message}). Jalankan lewat server lokal: klik dua kali "jalankan.bat".`, true);
+    hud.loading(location.protocol === 'file:'
+      ? `Gagal memuat model GLB (${err.message}). Jalankan lewat server lokal: klik dua kali "jalankan.bat".`
+      : `Gagal memuat model GLB (${err.message}). Periksa koneksi lalu muat ulang halaman; bila tetap gagal, jalankan lewat "jalankan.bat".`, true);
     return;
   }
   for (const r of ctx.robots) r.placeAt(...r.startPose());
@@ -273,11 +316,19 @@ async function init() {
   }
 
   if (S.otoTR === '1') handleEdge({ action: 'autoTR' });
+  if (tutorial) label.set(true);
+  if (demo) {
+    // demo: kedua robot tim sendiri otonom, apa pun pengaturan menu
+    if (!auto.enabled) handleEdge({ action: 'auto' });
+    if (!autoTR.enabled) handleEdge({ action: 'autoTR' });
+    demo.mulai();
+  }
   snapCamera();
   requestAnimationFrame(loop);
 }
 
 function resetField() {
+  hasil?.tutup();
   if (rekam.playing) { rekam.stop(); document.getElementById('replay').classList.remove('show'); }
   rekam.reset();
   objects.setup(LAYOUT);
@@ -287,6 +338,8 @@ function resetField() {
     r.frozen = false;
     r.stopped = false;
     r.enteredL1 = false;
+    r.retryHold = 0;          // robot yang sedang "diangkat" saat Retry ikut bebas setelah reset
+    r.sejakRetry = false;
     if (r.kind === 'BR') { r.vacuum = false; r.h = 335; r.e = 0; r.roll = 0; r.flip = 0; r.track = 0; r.trackTarget = 0; r.preset = null; }
     else { r.jaw = 250; r.open = 390; r.gripCmd = 'open'; r.gripWidth = null; r.preset = null; }
     r.applyJoints();
@@ -305,8 +358,9 @@ function resetField() {
 // ---------- kamera ----------
 const lastTarget = new THREE.Vector3();
 function snapCamera() {
-  const p = new THREE.Vector3(active.x, active.y + 0.4, active.z);
-  const back = active.forward().multiplyScalar(-3.2);
+  const r = sorotan();
+  const p = new THREE.Vector3(r.x, r.y + 0.4, r.z);
+  const back = r.forward().multiplyScalar(-3.2);
   camera.position.set(p.x + back.x, p.y + 2.4, p.z + back.z);
   controls.target.copy(p);
   lastTarget.copy(p);
@@ -340,6 +394,7 @@ function updateSensorView() {
 
 function updateCamera() {
   controls.enabled = camMode !== 'robot';
+  const active = sorotan();      // robot yang diikuti kamera (robot aktif, atau sorotan demo)
   if (camMode === 'ikuti') {
     const p = new THREE.Vector3(active.x, active.y + 0.4, active.z);
     const d = p.clone().sub(lastTarget);
@@ -369,7 +424,8 @@ function setCamMode(m) {
   } else if (m === 'ikuti') {
     snapCamera();
   } else if (m === 'bebas') {
-    controls.target.set(active.x, active.y + 0.4, active.z);
+    const r = sorotan();
+    controls.target.set(r.x, r.y + 0.4, r.z);
   }
   hud.setCamera(CAM_NAMES[m]);
 }
@@ -377,8 +433,9 @@ function setCamMode(m) {
 // ---------- aksi tombol ----------
 let presetIdx = { TR: 0, BR: 0 };
 function handleEdge(e) {
+  events.emit('aksi', e.action);
   // saat putar ulang hanya kamera, bantuan, catatan waktu dan menu yang berlaku
-  if (rekam.playing && !['camera', 'help', 'timeline', 'menu', 'minimap', 'keys', 'pengarah'].includes(e.action)) return;
+  if (rekam.playing && !['camera', 'help', 'timeline', 'menu', 'minimap', 'keys', 'pengarah', 'label'].includes(e.action)) return;
   // pemain kedua (lawan manusia) hanya mengendalikan TR lawan: jepit, preset, Retry
   if (e.target === 'foe') {
     if (!foes || !/^(grip|retry|preset)/.test(e.action) || rules.phase === 'ended') return;
@@ -420,6 +477,7 @@ function handleEdge(e) {
     case 'grip': robot.toggleGrip(); break;
     case 'track': if (robot.kind === 'BR') robot.toggleTrack(); break;
     case 'switch':
+      fokus = null;
       active = active === br ? tr : br;
       hud.setActive(active);
       if (camMode === 'ikuti') snapCamera();
@@ -453,9 +511,10 @@ function handleEdge(e) {
       rules.log(sensorView.visible ? `Tampilan sensor BR: kotak biru muda = perkiraan sensor (${auto.sensor.mode})` : 'Tampilan sensor BR mati', 'info');
       break;
     case 'minimap': hud.toggleMinimap(); break;
+    case 'label': rules.log(label.toggle() ? 'Nama area ditampilkan (Y untuk menyembunyikan)' : 'Nama area disembunyikan', 'info'); break;
     case 'keys': document.getElementById('keys').classList.toggle('hide'); break;
     case 'reset':
-      if (confirm('Reset lapangan, objek, skor dan timer?')) resetField();
+      if (confirm('Reset lapangan, objek, skor dan timer?')) { resetField(); mulaiLatihan(); }
       break;
     case 'presetPrev': case 'presetNext': {
       const k = robot.kind;
@@ -495,6 +554,7 @@ function simulate(dt, inp) {
     objects.update(h);
   }
   rules.update(dt);
+  demo?.update();
   darurat?.update();
   suara.update();
   rekam.capture();
@@ -595,6 +655,7 @@ function loop() {
   updateCamera();
   updateSensorView();
   latihan?.update();
+  tutorial?.update();
   hud.update(dt, { active, pads: inp.pads, camMode, auto, autoTR });
   timeline.update();
   renderer.render(scene, camera);
@@ -606,7 +667,7 @@ hud.setCamera(CAM_NAMES[camMode]);
 // sim.step(detik, ['KeyW', ...]) memajukan simulasi tanpa render (uji / skrip)
 window.sim = {
   Lidar, Imu, Odom, buatPeta, Kamera, LIDAR_BURUK, KAMERA_BURUK, get arena() { return arena; }, get wasit() { return wasit; }, darurat, pengarah, bandingLog, labelBingkai, NAMA_KELAS,
-  tr, br, objects, rules, scene, camera, controls, renderer, input, setCamMode, resetField, auto, autoTR, timeline, foes, foeAutos, rekam, openReplay, closeReplay, latihan, jembatan, jembatanOf, suara, robots: ctx.robots,
+  tr, br, objects, rules, scene, camera, controls, renderer, input, setCamMode, resetField, auto, autoTR, timeline, foes, foeAutos, rekam, openReplay, closeReplay, latihan, tutorial, label, demo, get fokus() { return fokus; }, get camMode() { return camMode; }, get hasil() { return hasil; }, jembatan, jembatanOf, suara, robots: ctx.robots,
   get active() { return active; },
   press(code) { input.edges.push(...[].concat(code).map((c) => ({ action: { Space: 'grip', KeyT: 'track', Tab: 'switch', Enter: 'timer', KeyO: 'auto', KeyI: 'autoTR', KeyL: 'timeline', KeyV: 'sensorView', KeyZ: 'swapZones', KeyX: 'rotate90', KeyN: 'mute', KeyJ: 'pengarah', Backspace: 'retry' }[c] || ('preset' + c.replace('Digit', '')), shift: false }))); for (const e of input.edges.splice(0)) handleEdge(e); },
   step(sec, keys = []) {
@@ -617,6 +678,7 @@ window.sim = {
       for (const e of inp.edges) handleEdge(e);
       if (rekam.playing) rekam.update(1 / 60); else simulate(1 / 60, inp);
       latihan?.update();
+      tutorial?.update(rules.simT);
     }
     for (const k of keys) input.keys.delete(k);
   },
